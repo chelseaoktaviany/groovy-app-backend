@@ -57,4 +57,5 @@
   ```
 
 - Buka Postman, pilih HTTP method `POST`, kemudian ketik `http://localhost:5000/v1/users/signUp`
+- Lakukan uji coba dengan mengisi data menggunakan `raw json`
 - Setelah itu, pilih tombol `Send`
