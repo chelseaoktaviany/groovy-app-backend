@@ -53,7 +53,7 @@ exports.signUp = catchAsync(async (req, res, next) => {
 
   const { firstName, lastName, nomorHP } = req.body;
 
-  const existedUser = await User.findOne({ nomorHP });
+  const existedUser = await User.findOne({ emailAddress });
 
   if (existedUser) {
     return next(new AppError('User sudah pernah ada', 409));
