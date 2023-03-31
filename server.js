@@ -48,3 +48,11 @@ process.on('unhandledRejection', (err) => {
     process.exit(1);
   });
 });
+
+// sigterm unexpection
+process.on('SIGTERM', () => {
+  console.log('SIGTERM RECEIVED. Shutting down..');
+  server.close(() => {
+    console.log('Process terminated. 💀');
+  });
+});
