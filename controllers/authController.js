@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const { generateOTP } = require('../utils/otp');
+
 const Email = require('../utils/email');
 
 // menggunakan model
@@ -121,41 +122,43 @@ exports.signUp = catchAsync(async (req, res, next) => {
  * @returns status, msg, data:{user}
  * @throws - 400 (Mohon isi nomor HP Anda), 401 (Nomor HP user yang telah terdaftar tidak ditemukan), 500 (Failed to send an e-mail containing OTP) & 500 (Internal Server Error)
  */
-exports.signIn = catchAsync(async (req, res, next) => {
-  const { nomorHP } = req.body;
+// exports.signIn = catchAsync(async (req, res, next) => {
+//   const { nomorHP } = req.body;
 
-  const user = await User.findOne({ nomorHP });
+//   const user = await User.findOne({ nomorHP });
 
-  if (!user) {
-    return next(
-      new AppError('Nomor HP pengguna yang terdaftar tidak ditemukan', 401)
-    );
-  }
+//   console.log(user);
 
-  try {
-    user.otp = await generateAndSaveOtp(user);
+//   if (!user) {
+//     return next(
+//       new AppError('Nomor HP pengguna yang terdaftar tidak ditemukan', 401)
+//     );
+//   }
 
-    user.save({ validateBeforeSave: false });
+//   try {
+//     user.otp = await generateAndSaveOtp(user);
 
-    await new Email(user).sendOTPEmail();
+//     user.save({ validateBeforeSave: false });
 
-    res.status(200).json({
-      status: 0,
-      msg: "We've already sent OTP in your e-mail",
-      data: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      },
-    });
-  } catch (err) {
-    return next(
-      new AppError(
-        'Ada kesalahan yang terjadi saat mengirim e-mail, mohon dicoba lagi'
-      )
-    );
-  }
-});
+//     await new Email(user).sendOTPEmail();
+
+//     res.status(200).json({
+//       status: 0,
+//       msg: "We've already sent OTP in your e-mail",
+//       data: {
+//         id: user._id,
+//         firstName: user.firstName,
+//         lastName: user.lastName,
+//       },
+//     });
+//   } catch (err) {
+//     return next(
+//       new AppError(
+//         'Ada kesalahan yang terjadi saat mengirim e-mail, mohon dicoba lagi'
+//       )
+//     );
+//   }
+// });
 
 /**
  * Pengiriman OTP, mengirim OTP kepada e-mail pengguna
@@ -167,18 +170,18 @@ exports.signIn = catchAsync(async (req, res, next) => {
  */
 exports.resendOTP = catchAsync(async (req, res, next) => {
   try {
-    const existedUser = await User.findOne({ emailAddress });
+    const user = await User.findOne({ emailAddress });
 
-    if (!existedUser) {
+    if (!user) {
       return next(new AppError('Akun pengguna tidak ditemukan'));
     }
 
     // send OTP melalui E-mail (namun kalau mengirim OTP sebanyak 3 kali aka limit=3)
-    existedUser.otp = await generateAndSaveOtp(existedUser);
-    existedUser.save({ validateBeforeSave: false });
+    user.otp = await generateAndSaveOtp(user);
+    user.save({ validateBeforeSave: false });
 
     // email untuk OTP
-    await new Email(existedUser).sendOTPEmail();
+    await new Email(user).sendOTPEmail();
 
     // kirim response
     res.status(201).json({
@@ -186,9 +189,9 @@ exports.resendOTP = catchAsync(async (req, res, next) => {
       msg: "We've already sent OTP in your e-mail",
     });
   } catch (err) {
-    const existedUser = await User.findOne({ emailAddress });
-    existedUser.otp = undefined;
-    existedUser.save({ validateBeforeSave: false });
+    const user = await User.findOne({ emailAddress });
+    user.otp = undefined;
+    user.save({ validateBeforeSave: false });
 
     return next(
       new AppError(
