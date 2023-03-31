@@ -225,7 +225,7 @@ exports.verifyOTP = catchAsync(async (req, res, next) => {
   }
 
   if (user.otpExpiration < new Date()) {
-    user.OTP = undefined;
+    user.otp = undefined;
     user.save({ validateBeforeSave: false });
 
     return next(new AppError('OTP sudah kedaluarsa', 401));
