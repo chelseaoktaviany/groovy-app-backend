@@ -233,6 +233,7 @@ exports.verifyOTP = catchAsync(async (req, res, next) => {
 
   // otp is valid
   user.otp = undefined;
+  user.otpExpiration = undefined;
   user.save({ validateBeforeSave: false });
 
   // create token
