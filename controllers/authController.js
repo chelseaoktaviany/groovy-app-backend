@@ -9,6 +9,9 @@ const Email = require('../utils/email');
 // menggunakan model
 const User = require('../models/userModel');
 
+// global variable
+let emailAddress;
+
 // generate OTP
 const generateAndSaveOtp = async (user) => {
   // melakukan aktif dan mengirim OTP
@@ -57,7 +60,9 @@ const createSendToken = (user, statusCode, msg, req, res) => {
  * @throws - 401 (User exists) & 500 (Internal Server Error)
  */
 exports.signUp = catchAsync(async (req, res, next) => {
-  const { firstName, lastName, emailAddress, nomorHP } = req.body;
+  emailAddress = req.body.emailAddress;
+
+  const { firstName, lastName, nomorHP } = req.body;
 
   const existedUser = await User.findOne({ emailAddress });
 
@@ -75,10 +80,6 @@ exports.signUp = catchAsync(async (req, res, next) => {
   // email untuk OTP
   try {
     // melakukan aktif dan mengirim OTP
-    // const otp = generateOTP(6);
-    // newUser.otp = otp;
-    // newUser.otpExpiration = new Date(Date.now() + 5 * 60 * 1000); // belaku selama 5 menit
-
     newUser.otp = await generateAndSaveOtp(newUser);
 
     newUser.active = true;
@@ -132,8 +133,6 @@ exports.signIn = catchAsync(async (req, res, next) => {
   }
 
   try {
-    // const otp = generateOTP(6);
-    // user.OTP = otp;
     user.otp = await generateAndSaveOtp(user);
 
     user.save({ validateBeforeSave: false });
@@ -166,7 +165,7 @@ exports.signIn = catchAsync(async (req, res, next) => {
  * @returns status, msg
  * @throws - 404 (User not found), 429 (Too many requests) & 500 (Internal Server Error)
  */
-exports.resendOTP = catchAsync(async (emailAddress, req, res, next) => {
+exports.resendOTP = catchAsync(async (req, res, next) => {
   try {
     const existedUser = await User.findOne({ emailAddress });
 
@@ -175,9 +174,6 @@ exports.resendOTP = catchAsync(async (emailAddress, req, res, next) => {
     }
 
     // send OTP melalui E-mail (namun kalau mengirim OTP sebanyak 3 kali aka limit=3)
-    // const otp = generateOTP(6);
-    // existedUser.OTP = otp;
-
     existedUser.otp = await generateAndSaveOtp(existedUser);
     existedUser.save({ validateBeforeSave: false });
 
@@ -211,7 +207,7 @@ exports.resendOTP = catchAsync(async (emailAddress, req, res, next) => {
  * @returns status, msg
  * @throws - 404 (User not found), 400 (OTP invalid or wrong) & 500 (Internal Server Error)
  */
-exports.verifyOTP = catchAsync(async (emailAddress, req, res, next) => {
+exports.verifyOTP = catchAsync(async (req, res, next) => {
   const otp = req.body.otp;
   const user = await User.findOne({ emailAddress });
 
