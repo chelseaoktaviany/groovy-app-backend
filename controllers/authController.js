@@ -191,6 +191,7 @@ exports.resendOTP = catchAsync(async (req, res, next) => {
   } catch (err) {
     const user = await User.findOne({ emailAddress });
     user.otp = undefined;
+    user.otpExpiration = undefined;
     user.save({ validateBeforeSave: false });
 
     return next(
