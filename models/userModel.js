@@ -35,11 +35,12 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    OTP: {
+    otp: {
       type: String,
       expires: '5m',
       index: true,
     },
+    otpExpiration: Date,
     profileImage: {
       type: String,
       default: 'default.jpeg',
