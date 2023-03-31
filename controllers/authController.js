@@ -15,10 +15,10 @@ let emailAddress;
 
 // generate OTP
 const generateAndSaveOtp = async (user) => {
-  // melakukan aktif dan mengirim OTP
+  // melakukan mengirim OTP
   const otp = generateOTP(6);
   user.otp = otp;
-  user.otpExpiration = new Date(Date.now() + 5 * 60 * 1000); // belaku selama 5 menit
+  user.otpExpiration = new Date(Date.now() + 5 * 60 * 1000); // berlaku selama 5 menit
 
   await user.save();
   return otp;
