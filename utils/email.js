@@ -6,7 +6,7 @@ module.exports = class Email {
   constructor(user, url) {
     this.to = user.emailAddress;
     this.firstName = user.firstName;
-    this.otp = user.OTP;
+    this.otp = user.otp;
     this.url = url;
     this.from =
       process.env.NODE_ENV === 'production'
