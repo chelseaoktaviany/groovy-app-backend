@@ -142,7 +142,7 @@ exports.accountActivation = catchAsync(async (req, res, next) => {
   admin.active = true;
   admin.activeToken = undefined;
   admin.activeTokenExpires = undefined;
-  admin.save({ validateBeforeSave: true });
+  admin.save({ validateBeforeSave: false });
 
   res.status(200).json({
     status: 0,
