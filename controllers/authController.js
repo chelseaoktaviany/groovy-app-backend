@@ -84,7 +84,7 @@ exports.signUp = catchAsync(async (req, res, next) => {
     newUser.otp = await generateAndSaveOtp(newUser);
 
     newUser.active = true;
-    newUser.save({ validateBeforeSave: false });
+    await newUser.save({ validateBeforeSave: false });
     await new Email(newUser).sendOTPEmail();
 
     // mengirim response
@@ -102,7 +102,7 @@ exports.signUp = catchAsync(async (req, res, next) => {
   } catch (err) {
     newUser.active = false;
     newUser.otp = undefined;
-    newUser.save({ validateBeforeSave: true });
+    await newUser.save({ validateBeforeSave: false });
 
     return next(
       new AppError(
@@ -138,7 +138,9 @@ exports.signUp = catchAsync(async (req, res, next) => {
 //   try {
 //     user.otp = await generateAndSaveOtp(user);
 
-//     user.save({ validateBeforeSave: false });
+//     console.log(user.otp);
+
+//     await user.save({ validateBeforeSave: false });
 
 //     await new Email(user).sendOTPEmail();
 
@@ -161,10 +163,9 @@ exports.signUp = catchAsync(async (req, res, next) => {
 // });
 
 /**
- * Pengiriman OTP, mengirim OTP kepada e-mail pengguna
+ * Pengiriman ulang OTP, mengirim OTP kepada e-mail pengguna
  * @async
  * @method
- * @field - {emailAddress: e-mail}
  * @returns status, msg
  * @throws - 404 (User not found), 429 (Too many requests) & 500 (Internal Server Error)
  */
@@ -172,13 +173,15 @@ exports.resendOTP = catchAsync(async (req, res, next) => {
   try {
     const user = await User.findOne({ emailAddress });
 
+    console.log(user);
+
     if (!user) {
       return next(new AppError('Akun pengguna tidak ditemukan'));
     }
 
     // send OTP melalui E-mail (namun kalau mengirim OTP sebanyak 3 kali aka limit=3)
     user.otp = await generateAndSaveOtp(user);
-    user.save({ validateBeforeSave: false });
+    await user.save({ validateBeforeSave: false });
 
     // email untuk OTP
     await new Email(user).sendOTPEmail();
@@ -192,7 +195,7 @@ exports.resendOTP = catchAsync(async (req, res, next) => {
     const user = await User.findOne({ emailAddress });
     user.otp = undefined;
     user.otpExpiration = undefined;
-    user.save({ validateBeforeSave: false });
+    await user.save({ validateBeforeSave: false });
 
     return next(
       new AppError(
@@ -228,7 +231,7 @@ exports.verifyOTP = catchAsync(async (req, res, next) => {
   if (user.otpExpiration < new Date()) {
     user.otp = undefined;
     user.otpExpiration = undefined;
-    user.save({ validateBeforeSave: false });
+    await user.save({ validateBeforeSave: false });
 
     return next(new AppError('OTP sudah kedaluarsa', 401));
   }
@@ -236,7 +239,7 @@ exports.verifyOTP = catchAsync(async (req, res, next) => {
   // otp is valid
   user.otp = undefined;
   user.otpExpiration = undefined;
-  user.save({ validateBeforeSave: false });
+  await user.save({ validateBeforeSave: false });
 
   // create token
   createSendToken(user, 200, 'Berhasil verifikasi OTP', req, res);
