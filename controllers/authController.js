@@ -177,8 +177,6 @@ exports.resendOTP = catchAsync(async (req, res, next) => {
   try {
     const user = await User.findOne({ emailAddress });
 
-    // console.log(user);
-
     if (!user) {
       return next(new AppError('Akun pengguna tidak ditemukan'));
     }
