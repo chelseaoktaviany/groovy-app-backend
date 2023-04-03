@@ -65,13 +65,12 @@ adminSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
 
   // hash password
-  this.password = crypto
-    .createHash('sha256')
-    .update(this.password)
-    .digest('hex');
+  this.password = await bcrypt.hash(this.password, 12);
 
   // menghapus kolom password confirm
   this.passwordConfirm = undefined;
+
+  next();
 });
 
 // method koreksi password

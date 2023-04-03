@@ -11,14 +11,14 @@ const Email = require('../utils/email');
 const Admin = require('../models/adminModel');
 
 // token
-const signToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+const signToken = (id, role) => {
+  return jwt.sign({ id, role }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 };
 
 const createSendToken = (user, statusCode, req, res) => {
-  const token = signToken(user._id);
+  const token = signToken(user._id, user.role);
 
   res.cookie('jwt', token, {
     expires: new Date(
@@ -31,7 +31,8 @@ const createSendToken = (user, statusCode, req, res) => {
     status: 0,
     msg: 'Success',
     data: {
-      user,
+      username: user.username,
+      role: user.role,
     },
     token,
   });
@@ -72,7 +73,7 @@ exports.signUp = catchAsync(async (req, res, next) => {
     role,
   });
 
-  admin.save({ validateBeforeSave: false });
+  await admin.save({ validateBeforeSave: false });
 
   try {
     // send confirmation email
@@ -88,10 +89,12 @@ exports.signUp = catchAsync(async (req, res, next) => {
         lastName: admin.lastName,
         username: admin.username,
         emailAddress: admin.emailAddress,
+        role: admin.role,
       },
     });
   } catch (err) {
     admin.active = false;
+    await admin.save({ validateBeforeSave: false });
     return next(
       new AppError(
         'Ada kesalahan yang terjadi saat mengirim e-mail, mohon dicoba lagi',
@@ -111,13 +114,10 @@ exports.signIn = catchAsync(async (req, res, next) => {
     return next(new AppError('Mohon isi username dan password Anda', 400));
   }
 
-  // memeriksa jika akun admin ditemukan?
-  // if (!admin) {
-  //   return next(new AppError('Password atau username salah', 401));
-  // }
-
   // memeriksa jika user sudah ada && password salah
-  if (!admin || !(await admin.correctPassword(password, admin.password))) {
+  const matchedPassword = await admin.correctPassword(password, admin.password);
+
+  if (!admin || !matchedPassword) {
     return next(new AppError('Password atau username salah', 401));
   }
 
@@ -142,7 +142,7 @@ exports.accountActivation = catchAsync(async (req, res, next) => {
   admin.active = true;
   admin.activeToken = undefined;
   admin.activeTokenExpires = undefined;
-  admin.save({ validateBeforeSave: false });
+  await admin.save({ validateBeforeSave: false });
 
   res.status(200).json({
     status: 0,
