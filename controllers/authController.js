@@ -25,14 +25,14 @@ const generateAndSaveOtp = async (user) => {
 };
 
 // token
-const signToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+const signToken = (id, role) => {
+  return jwt.sign({ id, role }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 };
 
 const createSendToken = (user, statusCode, msg, req, res) => {
-  const token = signToken(user._id);
+  const token = signToken(user._id, user.role);
 
   res.cookie('jwt', token, {
     expires: new Date(
@@ -46,6 +46,7 @@ const createSendToken = (user, statusCode, msg, req, res) => {
     msg,
     data: {
       id: user._id,
+      role: user.role,
     },
     token,
   });
@@ -97,6 +98,7 @@ exports.signUp = catchAsync(async (req, res, next) => {
         lastName: newUser.lastName,
         emailAddress: newUser.emailAddress,
         nomorHP: newUser.nomorHP,
+        role: newUser.role,
       },
     });
   } catch (err) {
