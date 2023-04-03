@@ -24,7 +24,6 @@ const generateAndSaveOtp = async (user) => {
   return otp;
 };
 
-// token
 const signToken = (id, role) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
@@ -124,45 +123,48 @@ exports.signUp = catchAsync(async (req, res, next) => {
  * @returns status, msg, data:{user}
  * @throws - 400 (Mohon isi nomor HP Anda), 401 (Nomor HP user yang telah terdaftar tidak ditemukan), 500 (Failed to send an e-mail containing OTP) & 500 (Internal Server Error)
  */
-// exports.signIn = catchAsync(async (req, res, next) => {
-//   const { nomorHP } = req.body;
+exports.signIn = catchAsync(async (req, res, next) => {
+  const { nomorHP } = req.body;
 
-//   const user = await User.findOne({ nomorHP });
+  const user = await User.findOne({
+    nomorHP,
+  });
 
-//   console.log(user);
+  if (!user) {
+    return next(
+      new AppError('Nomor HP pengguna yang terdaftar tidak ditemukan', 401)
+    );
+  }
 
-//   if (!user) {
-//     return next(
-//       new AppError('Nomor HP pengguna yang terdaftar tidak ditemukan', 401)
-//     );
-//   }
+  // finding an existed e-mail address in database
+  emailAddress = user.emailAddress;
 
-//   try {
-//     user.otp = await generateAndSaveOtp(user);
+  // console.log(user);
 
-//     console.log(user.otp);
+  try {
+    user.otp = await generateAndSaveOtp(user);
 
-//     await user.save({ validateBeforeSave: false });
+    await user.save({ validateBeforeSave: false });
 
-//     await new Email(user).sendOTPEmail();
+    await new Email(user).sendOTPEmail();
 
-//     res.status(200).json({
-//       status: 0,
-//       msg: "We've already sent OTP in your e-mail",
-//       data: {
-//         id: user._id,
-//         firstName: user.firstName,
-//         lastName: user.lastName,
-//       },
-//     });
-//   } catch (err) {
-//     return next(
-//       new AppError(
-//         'Ada kesalahan yang terjadi saat mengirim e-mail, mohon dicoba lagi'
-//       )
-//     );
-//   }
-// });
+    res.status(200).json({
+      status: 0,
+      msg: "We've already sent OTP in your e-mail",
+      data: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+    });
+  } catch (err) {
+    return next(
+      new AppError(
+        'Ada kesalahan yang terjadi saat mengirim e-mail, mohon dicoba lagi'
+      )
+    );
+  }
+});
 
 /**
  * Pengiriman ulang OTP, mengirim OTP kepada e-mail pengguna
@@ -175,7 +177,7 @@ exports.resendOTP = catchAsync(async (req, res, next) => {
   try {
     const user = await User.findOne({ emailAddress });
 
-    console.log(user);
+    // console.log(user);
 
     if (!user) {
       return next(new AppError('Akun pengguna tidak ditemukan'));

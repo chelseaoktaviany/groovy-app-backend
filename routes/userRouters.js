@@ -15,7 +15,7 @@ const router = express.Router();
 
 // authentication
 router.post('/signUp', authController.signUp);
-// router.post('/signIn', authController.signIn);
+router.post('/signIn', authController.signIn);
 
 // OTP
 router.get('/resendOTP', resendOTPRateLimiter, authController.resendOTP);
