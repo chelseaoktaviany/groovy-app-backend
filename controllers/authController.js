@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
-
+const crypto = require('crypto');
+const { promisify } = require('util');
 // utilities
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
@@ -63,54 +64,114 @@ const createSendToken = (user, statusCode, msg, req, res) => {
 exports.signUp = catchAsync(async (req, res, next) => {
   emailAddress = req.body.emailAddress;
 
-  const { firstName, lastName, nomorHP } = req.body;
+  const {
+    firstName,
+    lastName,
+    username,
+    nomorHP,
+    password,
+    passwordConfirm,
+    role,
+  } = req.body;
 
-  const existedUser = await User.findOne({ emailAddress });
+  const user = await User.findOne({ emailAddress });
 
-  if (existedUser) {
+  if (user) {
     return next(new AppError('User sudah pernah ada', 409));
   }
 
-  const newUser = await User.create({
-    firstName,
-    lastName,
-    emailAddress,
-    nomorHP,
-  });
+  if (role === 'admin' && role === 'super-admin') {
+    // membuat link token aktivasi
+    const activeToken = crypto.randomBytes(20).toString('hex');
+    const activeTokenExpires = Date.now() + 24 * 60 * 60 * 1000; // token valid selama 24 jam
 
-  // email untuk OTP
-  try {
-    // melakukan aktif dan mengirim OTP
-    newUser.otp = await generateAndSaveOtp(newUser);
-
-    newUser.active = true;
-    await newUser.save({ validateBeforeSave: false });
-    await new Email(newUser).sendOTPEmail();
-
-    // mengirim response
-    res.status(201).json({
-      status: 0,
-      msg: "We've already sent OTP in your e-mail",
-      data: {
-        id: newUser._id,
-        firstName: newUser.firstName,
-        lastName: newUser.lastName,
-        emailAddress: newUser.emailAddress,
-        nomorHP: newUser.nomorHP,
-        role: newUser.role,
-      },
+    const newAdmin = await User.create({
+      firstName,
+      lastName,
+      username,
+      emailAddress,
+      password,
+      passwordConfirm,
+      activeToken,
+      activeTokenExpires,
+      role,
     });
-  } catch (err) {
-    newUser.active = false;
-    newUser.otp = undefined;
-    await newUser.save({ validateBeforeSave: false });
 
-    return next(
-      new AppError(
-        'Ada kesalahan yang terjadi saat mengirim e-mail, mohon dicoba lagi',
-        500
-      )
-    );
+    console.log(newAdmin);
+
+    await newAdmin.save({ validateBeforeSave: false });
+
+    try {
+      // send confirmation email
+      const url = `http://127.0.0.1:${process.env.PORT}/v1/users/activate?token=${activeToken}`;
+
+      await new Email(newAdmin, url).sendWelcome();
+
+      res.status(201).json({
+        status: 0,
+        msg: "We've already sent an e-mail to your email address",
+        data: {
+          firstName: newAdmin.firstName,
+          lastName: newAdmin.lastName,
+          username: newAdmin.username,
+          emailAddress: newAdmin.emailAddress,
+          role: newAdmin.role,
+        },
+      });
+    } catch (err) {
+      newAdmin.active = false;
+      await newAdmin.save({ validateBeforeSave: false });
+      return next(
+        new AppError(
+          'Ada kesalahan yang terjadi saat mengirim e-mail, mohon dicoba lagi',
+          500
+        )
+      );
+    }
+  } else if (role === 'user') {
+    const newUser = await User.create({
+      firstName,
+      lastName,
+      emailAddress,
+      nomorHP,
+    });
+
+    console.log(newUser);
+
+    // email untuk OTP
+    try {
+      // melakukan aktif dan mengirim OTP
+      newUser.otp = await generateAndSaveOtp(newUser);
+
+      newUser.active = true;
+      await newUser.save({ validateBeforeSave: false });
+      await new Email(newUser).sendOTPEmail();
+
+      // mengirim response
+      res.status(201).json({
+        status: 0,
+        msg: "We've already sent OTP in your e-mail",
+        data: {
+          id: newUser._id,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
+          emailAddress: newUser.emailAddress,
+          nomorHP: newUser.nomorHP,
+          role: newUser.role,
+        },
+      });
+    } catch (err) {
+      newUser.active = false;
+      newUser.otp = undefined;
+      await newUser.save({ validateBeforeSave: false });
+
+      return next(
+        new AppError(
+          'Ada kesalahan yang terjadi saat mengirim e-mail, mohon dicoba lagi',
+          500
+        )
+      );
+    }
   }
 });
 
@@ -124,45 +185,65 @@ exports.signUp = catchAsync(async (req, res, next) => {
  * @throws - 400 (Mohon isi nomor HP Anda), 401 (Nomor HP user yang telah terdaftar tidak ditemukan), 500 (Failed to send an e-mail containing OTP) & 500 (Internal Server Error)
  */
 exports.signIn = catchAsync(async (req, res, next) => {
-  const { nomorHP } = req.body;
+  const { nomorHP, username, password } = req.body;
 
-  const user = await User.findOne({
-    nomorHP,
-  });
-
-  if (!user) {
-    return next(
-      new AppError('Nomor HP pengguna yang terdaftar tidak ditemukan', 401)
-    );
-  }
-
-  // finding an existed e-mail address in database
-  emailAddress = user.emailAddress;
-
-  // console.log(user);
-
-  try {
-    user.otp = await generateAndSaveOtp(user);
-
-    await user.save({ validateBeforeSave: false });
-
-    await new Email(user).sendOTPEmail();
-
-    res.status(200).json({
-      status: 0,
-      msg: "We've already sent OTP in your e-mail",
-      data: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      },
+  if (nomorHP) {
+    const user = await User.findOne({
+      nomorHP,
     });
-  } catch (err) {
-    return next(
-      new AppError(
-        'Ada kesalahan yang terjadi saat mengirim e-mail, mohon dicoba lagi'
-      )
-    );
+
+    if (!user) {
+      return next(
+        new AppError('Nomor HP pengguna yang terdaftar tidak ditemukan', 401)
+      );
+    }
+
+    // finding an existed e-mail address in database
+    emailAddress = user.emailAddress;
+
+    // console.log(user);
+
+    try {
+      user.otp = await generateAndSaveOtp(user);
+
+      await user.save({ validateBeforeSave: false });
+
+      await new Email(user).sendOTPEmail();
+
+      res.status(200).json({
+        status: 0,
+        msg: "We've already sent OTP in your e-mail",
+        data: {
+          id: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+        },
+      });
+    } catch (err) {
+      return next(
+        new AppError(
+          'Ada kesalahan yang terjadi saat mengirim e-mail, mohon dicoba lagi'
+        )
+      );
+    }
+  } else if (username && password) {
+    const user = await User.findOne({ username }).select('+password');
+
+    console.log(user);
+
+    // memeriksa jika username terisi?
+    if (!username || !password) {
+      return next(new AppError('Mohon isi username dan password Anda', 400));
+    }
+
+    // memeriksa jika user sudah ada && password salah
+    const matchedPassword = await user.correctPassword(password, user.password);
+
+    if (!user || !matchedPassword) {
+      return next(new AppError('Password atau username salah', 401));
+    }
+
+    createSendToken(user, 201, req, res);
   }
 });
 
@@ -246,3 +327,111 @@ exports.verifyOTP = catchAsync(async (req, res, next) => {
   // create token
   createSendToken(user, 200, 'Berhasil verifikasi OTP', req, res);
 });
+
+exports.signOut = catchAsync(async (req, res, next) => {});
+
+exports.accountActivation = catchAsync(async (req, res, next) => {
+  const activeToken = req.query.token;
+
+  const user = await User.findOne({ activeToken });
+
+  if (!user) {
+    return next(new AppError('Aktivasi token tidak valid', 401));
+  }
+
+  if (user.activeTokenExpires < Date.now()) {
+    return next(new AppError('Aktivasi token sudah kedaluarsa', 401));
+  }
+
+  user.active = true;
+  user.activeToken = undefined;
+  user.activeTokenExpires = undefined;
+  await user.save({ validateBeforeSave: false });
+
+  res.status(200).json({
+    status: 0,
+    msg: 'Success! Berhasil aktivasi akun admin melalui alamat e-mail admin',
+  });
+});
+
+exports.changePassword = catchAsync(async (req, res, next) => {});
+
+/**
+ * protect, perlindungan router
+ * @async
+ * @method
+ * @field - {id - user._id, otp: OTP}
+ * @returns status, msg
+ * @throws - 404 (User not found), 400 (OTP invalid or wrong) & 500 (Internal Server Error)
+ */
+exports.protect = catchAsync(async (req, res, next) => {
+  // getting token
+  let token;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
+  }
+
+  if (!token) {
+    return next(
+      new AppError(
+        'Anda belum log in, mohon lakukan login untuk mendapatkan akses token',
+        401
+      )
+    );
+  }
+
+  // verifikasi token
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+
+  // memeriksa jika pengguna sudah ada
+  const currentUser = await User.findById(decoded.id);
+  if (!currentUser) {
+    return next(new AppError('Token itu yang dia miliki sudah tidak ada'));
+  }
+
+  // grant access to protected route
+  req.user = currentUser;
+  res.locals.user = currentUser;
+  next();
+});
+
+// logged in
+exports.isLoggedIn = async (req, res, next) => {
+  try {
+    if (req.cookies.jwt) {
+      // verifikasi token
+      const decoded = await promisify(jwt.verify)(
+        req.cookies.jwt,
+        process.env.JWT_SECRET
+      );
+
+      // memeriksa jika pengguna sudah ada
+      const currentUser = await User.findById(decoded.id);
+      if (!currentUser) {
+        return next();
+      }
+
+      // ada pengguna yang sudah login
+      res.locals.user = currentUser;
+      return next();
+    }
+  } catch (err) {
+    return next();
+  }
+};
+
+// restrict to specified roles
+exports.restrictTo = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new AppError('You do not have permission to perform this action', 403)
+      );
+    }
+  };
+};
