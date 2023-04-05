@@ -360,9 +360,8 @@ exports.changePassword = catchAsync(async (req, res, next) => {});
  * protect, perlindungan router
  * @async
  * @method
- * @field - {id - user._id, otp: OTP}
  * @returns status, msg
- * @throws - 404 (User not found), 400 (OTP invalid or wrong) & 500 (Internal Server Error)
+ * @throws - 401 (Anda belum log in, mohon lakukan login untuk mendapatkan akses token)
  */
 exports.protect = catchAsync(async (req, res, next) => {
   // getting token
