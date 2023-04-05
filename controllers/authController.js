@@ -97,6 +97,8 @@ exports.signUp = catchAsync(async (req, res, next) => {
       role,
     });
 
+    newAdmin.nomorHP = undefined;
+
     await newAdmin.save({ validateBeforeSave: false });
 
     try {
