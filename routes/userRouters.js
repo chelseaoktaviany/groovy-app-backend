@@ -29,7 +29,7 @@ router.post('/verified', verifyOTPRateLimiter, authController.verifyOTP);
 router.use(authController.protect);
 
 // restriction middleware
-router.use(authController.restrictTo('admin'));
+router.use(authController.restrictTo('admin', 'super-admin'));
 
 // user management
 router.route('/').get(userController.getAllUsers);
