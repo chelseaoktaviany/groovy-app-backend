@@ -80,7 +80,7 @@ exports.signUp = catchAsync(async (req, res, next) => {
     return next(new AppError('User sudah pernah ada', 409));
   }
 
-  if (role === 'admin' && role === 'super-admin') {
+  if (role === 'admin' || role === 'super-admin') {
     // membuat link token aktivasi
     const activeToken = crypto.randomBytes(20).toString('hex');
     const activeTokenExpires = Date.now() + 24 * 60 * 60 * 1000; // token valid selama 24 jam
@@ -392,6 +392,13 @@ exports.protect = catchAsync(async (req, res, next) => {
     return next(new AppError('Token itu yang dia miliki sudah tidak ada'));
   }
 
+  // memeriksa jika pengguna sudah mengganti password setelah token
+  if (currentUser.changedPasswordAfter(decoded.iat)) {
+    return next(
+      new AppError('Pengguna telah mengganti password, mohon login lagi', 401)
+    );
+  }
+
   // grant access to protected route
   req.user = currentUser;
   res.locals.user = currentUser;
@@ -414,6 +421,11 @@ exports.isLoggedIn = async (req, res, next) => {
         return next();
       }
 
+      // memeriksa jika pengguna sudah mengganti password
+      if (currentUser.changedPasswordAfter(decoded.iat)) {
+        return next();
+      }
+
       // ada pengguna yang sudah login
       res.locals.user = currentUser;
       return next();
@@ -426,10 +438,13 @@ exports.isLoggedIn = async (req, res, next) => {
 // restrict to specified roles
 exports.restrictTo = (...roles) => {
   return (req, res, next) => {
+    // roles['admin', 'super-admin'], role='user'
     if (!roles.includes(req.user.role)) {
       return next(
         new AppError('You do not have permission to perform this action', 403)
       );
     }
+
+    next();
   };
 };
