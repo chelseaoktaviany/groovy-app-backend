@@ -97,8 +97,6 @@ exports.signUp = catchAsync(async (req, res, next) => {
       role,
     });
 
-    console.log(newAdmin);
-
     await newAdmin.save({ validateBeforeSave: false });
 
     try {
@@ -135,8 +133,6 @@ exports.signUp = catchAsync(async (req, res, next) => {
       emailAddress,
       nomorHP,
     });
-
-    console.log(newUser);
 
     // email untuk OTP
     try {
@@ -201,8 +197,6 @@ exports.signIn = catchAsync(async (req, res, next) => {
     // finding an existed e-mail address in database
     emailAddress = user.emailAddress;
 
-    // console.log(user);
-
     try {
       user.otp = await generateAndSaveOtp(user);
 
@@ -229,8 +223,6 @@ exports.signIn = catchAsync(async (req, res, next) => {
   } else if (username && password) {
     const user = await User.findOne({ username }).select('+password');
 
-    console.log(user);
-
     // memeriksa jika username terisi?
     if (!username || !password) {
       return next(new AppError('Mohon isi username dan password Anda', 400));
@@ -243,7 +235,13 @@ exports.signIn = catchAsync(async (req, res, next) => {
       return next(new AppError('Password atau username salah', 401));
     }
 
-    createSendToken(user, 201, req, res);
+    createSendToken(
+      user,
+      201,
+      'Success! Berhasil melakukan sign in admin',
+      req,
+      res
+    );
   }
 });
 
