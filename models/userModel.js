@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema(
     username: {
       type: String,
       required: function () {
-        if (this.role === 'admin' && this.role === 'super-admin') {
+        if (this.role === 'admin' || this.role === 'super-admin') {
           return [true, 'Mohon isi nama pengguna Anda'];
         }
       },
@@ -32,6 +32,7 @@ const userSchema = new mongoose.Schema(
         validator.isEmail,
         'Alamat e-mail pengguna harus sesuai dengan format e-mail',
       ],
+      sparse: true,
       unique: true,
       trim: true,
     },
@@ -42,13 +43,14 @@ const userSchema = new mongoose.Schema(
           return [true, 'Mohon isi nomor HP Anda'];
         }
       },
+      sparse: true,
       unique: true,
       trim: true,
     },
     password: {
       type: String,
       required: function () {
-        if (this.role === 'admin' && this.role === 'super-admin') {
+        if (this.role === 'admin' || this.role === 'super-admin') {
           return [true, 'Mohon isi password Anda'];
         }
       },
@@ -58,7 +60,7 @@ const userSchema = new mongoose.Schema(
     passwordConfirm: {
       type: String,
       required: function () {
-        if (this.role === 'admin' && this.role === 'super-admin') {
+        if (this.role === 'admin' || this.role === 'super-admin') {
           return [true, 'Mohon isi password konfirmasi Anda'];
         }
       },
@@ -133,7 +135,7 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
       10
     );
 
-    console.log(changedTimestamp, JWTTimestamp);
+    // console.log(changedTimestamp, JWTTimestamp);
 
     return JWTTimestamp < changedTimestamp;
   }
@@ -151,7 +153,7 @@ userSchema.methods.createPasswordResetToken = function () {
     .update(resetToken)
     .digest('hex');
 
-  console.log({ resetToken }, this.passwordResetToken);
+  // console.log({ resetToken }, this.passwordResetToken);
 
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
 
