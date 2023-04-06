@@ -109,7 +109,7 @@ exports.signUp = catchAsync(async (req, res, next) => {
 
       res.status(201).json({
         status: 0,
-        msg: "We've already sent an e-mail to your email address",
+        msg: 'Success! Berhasil pendaftaran akun, e-mail untuk aktivasi akun akan dikirim. Mohon periksa e-mail Anda',
         data: {
           firstName: newAdmin.firstName,
           lastName: newAdmin.lastName,
