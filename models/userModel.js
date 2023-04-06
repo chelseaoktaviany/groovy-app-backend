@@ -95,7 +95,11 @@ const userSchema = new mongoose.Schema(
     },
     balance: {
       type: Number,
-      default: undefined,
+      default: function () {
+        if (this.role === 'user') {
+          return 0;
+        }
+      },
     },
     paymentStatus: {
       type: String,
