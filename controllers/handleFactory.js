@@ -61,3 +61,25 @@ exports.getAll = (Model, message) =>
       data: doc,
     });
   });
+
+// get one
+exports.getOne = (Model, message, popOptions) =>
+  catchAsync(async (req, res, next) => {
+    let query = Model.findById(req.params.id);
+    if (popOptions) query = query.populate(popOptions);
+
+    const doc = await query;
+
+    if (!doc) {
+      return next(
+        new AppError('Tidak ada dokumentasi yang ditemukan dengan ID', 404)
+      );
+    }
+
+    // send response
+    res.status(200).json({
+      status: 0,
+      msg: message,
+      data: doc,
+    });
+  });
