@@ -16,9 +16,31 @@ exports.deleteOne = (Model, message) =>
 
     // mengirim response
     res.status(204).json({
-      status: '0',
+      status: 0,
       msg: message,
       data: [],
+    });
+  });
+
+// update one
+exports.updateOne = (Model, message) =>
+  catchAsync(async (req, res, next) => {
+    const doc = await Model.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!doc) {
+      return next(
+        new AppError('Tidak ada dokumentasi yang ditemukan dengan ID', 404)
+      );
+    }
+
+    // send response
+    res.status(200).json({
+      status: 0,
+      msg: message,
+      data: doc,
     });
   });
 
@@ -27,9 +49,11 @@ exports.createOne = (Model, message) =>
   catchAsync(async (req, res, next) => {
     const doc = await Model.create(req.body);
 
+    console.log(doc);
+
     // mengirimkan response
     res.status(201).json({
-      status: 'success',
+      status: 0,
       msg: message,
       data: doc,
     });
@@ -55,7 +79,7 @@ exports.getAll = (Model, message) =>
 
     // mengirim response
     res.status(200).json({
-      status: '0',
+      status: 0,
       msg: message,
       results: doc.length,
       data: doc,
