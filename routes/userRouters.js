@@ -28,11 +28,15 @@ router.post('/verified', verifyOTPRateLimiter, authController.verifyOTP);
 // router protection (nanti)
 router.use(authController.protect);
 
+// get user
+router.get('/me', userController.getMe, userController.getUser);
+
 // restriction middleware
 router.use(authController.restrictTo('admin', 'super-admin'));
 
 // user management
 router.route('/').get(userController.getAllUsers);
+router.route('/:id').get(userController.getUser);
 
 // password manipulation
 // router.patch('/changePassword', authController.changePassword);
