@@ -80,6 +80,48 @@ exports.signUp = catchAsync(async (req, res, next) => {
     return next(new AppError('User sudah pernah ada', 409));
   }
 
+  const newUser = await User.create({
+    firstName,
+    lastName,
+    nomorHP,
+    emailAddress,
+  });
+
+  // email untuk OTP
+  try {
+    // melakukan aktif dan mengirim OTP
+    newUser.otp = await generateAndSaveOtp(newUser);
+
+    newUser.active = true;
+    await newUser.save({ validateBeforeSave: false });
+    await new Email(newUser).sendOTPEmail();
+
+    // mengirim response
+    res.status(201).json({
+      status: 0,
+      msg: "We've already sent OTP in your e-mail",
+      data: {
+        id: newUser._id,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        emailAddress: newUser.emailAddress,
+        nomorHP: newUser.nomorHP,
+        role: newUser.role,
+      },
+    });
+  } catch (err) {
+    newUser.active = false;
+    newUser.otp = undefined;
+    await newUser.save({ validateBeforeSave: false });
+
+    return next(
+      new AppError(
+        'Ada kesalahan yang terjadi saat mengirim e-mail, mohon dicoba lagi',
+        500
+      )
+    );
+  }
+
   if (role === 'admin' || role === 'super-admin') {
     // membuat link token aktivasi
     const activeToken = crypto.randomBytes(20).toString('hex');
@@ -121,48 +163,6 @@ exports.signUp = catchAsync(async (req, res, next) => {
     } catch (err) {
       newAdmin.active = false;
       await newAdmin.save({ validateBeforeSave: false });
-      return next(
-        new AppError(
-          'Ada kesalahan yang terjadi saat mengirim e-mail, mohon dicoba lagi',
-          500
-        )
-      );
-    }
-  } else if (role === 'user') {
-    const newUser = await User.create({
-      firstName,
-      lastName,
-      emailAddress,
-      nomorHP,
-    });
-
-    // email untuk OTP
-    try {
-      // melakukan aktif dan mengirim OTP
-      newUser.otp = await generateAndSaveOtp(newUser);
-
-      newUser.active = true;
-      await newUser.save({ validateBeforeSave: false });
-      await new Email(newUser).sendOTPEmail();
-
-      // mengirim response
-      res.status(201).json({
-        status: 0,
-        msg: "We've already sent OTP in your e-mail",
-        data: {
-          id: newUser._id,
-          firstName: newUser.firstName,
-          lastName: newUser.lastName,
-          emailAddress: newUser.emailAddress,
-          nomorHP: newUser.nomorHP,
-          role: newUser.role,
-        },
-      });
-    } catch (err) {
-      newUser.active = false;
-      newUser.otp = undefined;
-      await newUser.save({ validateBeforeSave: false });
-
       return next(
         new AppError(
           'Ada kesalahan yang terjadi saat mengirim e-mail, mohon dicoba lagi',
@@ -307,7 +307,7 @@ exports.verifyOTP = catchAsync(async (req, res, next) => {
   }
 
   // memeriksa jika OTP benar
-  if (otp !== user.otp) {
+  if (!otp || !user.otp) {
     return next(new AppError('OTP salah', 401));
   }
 
