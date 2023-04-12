@@ -328,7 +328,14 @@ exports.verifyOTP = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, 'Berhasil verifikasi OTP', req, res);
 });
 
-exports.signOut = catchAsync(async (req, res, next) => {});
+exports.signOut = catchAsync(async (req, res, next) => {
+  res.cookie('jwt', 'loggedout', {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+  });
+
+  res.status(200).json({ status: 0, msg: 'Success' });
+});
 
 exports.accountActivation = catchAsync(async (req, res, next) => {
   const activeToken = req.query.token;
