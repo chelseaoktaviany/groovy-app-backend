@@ -87,7 +87,7 @@ exports.getAll = (Model, message) =>
   });
 
 // get one
-exports.getOne = (Model, message, popOptions) =>
+exports.getOne = (Model, popOptions, message) =>
   catchAsync(async (req, res, next) => {
     let query = Model.findById(req.params.id);
     if (popOptions) query = query.populate(popOptions);

@@ -50,6 +50,7 @@ exports.getAllPackages = factory.getAll(
 // get package
 exports.getPackage = factory.getOne(
   Package,
+  { path: '_id' },
   'Berhasil mengakses sebuah data paket internet'
 );
 
