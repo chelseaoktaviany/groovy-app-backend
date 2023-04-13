@@ -16,6 +16,6 @@ exports.getMe = catchAsync(async (req, res, next) => {
   next();
 });
 
-exports.getUser = factory.getOne(User, 'Success');
+exports.getUser = factory.getOne(User, { path: '_id' }, 'Success');
 
 // mengubah user (JANGAN mengubah password dengan ini) NANTI
