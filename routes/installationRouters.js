@@ -12,4 +12,6 @@ router
   .get(installationController.getAllInstallations)
   .post(installationController.createInstallation);
 
+router.route('/:id').get(installationController.getInstallation);
+
 module.exports = router;
