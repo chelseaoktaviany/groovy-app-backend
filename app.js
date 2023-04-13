@@ -112,7 +112,7 @@ const limiter = rateLimit({
     'Terlalu banyak request dari IP ini, mohon dicoba lagi di dalam 1 jam',
 });
 
-app.use('/v1', limiter);
+app.use('/v1/ga', limiter);
 
 // using xendit webhook (later)
 
@@ -144,12 +144,8 @@ app.use((req, res, next) => {
 });
 
 // api routes
-app.use('/v1/users', userRouters);
-app.use('/v1/packages', packageRouters);
-
-app.get('/v1/', (req, res) => {
-  res.json({ status: 0, msg: 'Welcome to Andalworks API' });
-});
+app.use('/v1/ga/users', userRouters);
+app.use('/v1/ga/packages', packageRouters);
 
 // jika endpoint tidak ditemukan
 app.all('*', (req, res, next) => {
