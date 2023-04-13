@@ -19,6 +19,7 @@ const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 const userRouters = require('./routes/userRouters');
 const packageRouters = require('./routes/packageRouters');
+const installationRouters = require('./routes/installationRouters');
 
 // memulai aplikasi express
 const app = express();
@@ -90,7 +91,6 @@ csp.extend(app, {
         'unsafe-inline',
         'data:',
         'blob:',
-        // 'wss://<HEROKU-SUBDOMAIN>.herokuapp.com:<PORT>/',
         'https://*.cloudflare.com/',
         // 'https://bundle.js:*',
         `https://localhost:${process.env.PORT}/`,
@@ -146,6 +146,7 @@ app.use((req, res, next) => {
 // api routes
 app.use('/v1/ga/users', userRouters);
 app.use('/v1/ga/packages', packageRouters);
+app.use('/v1/ga/installations', installationRouters);
 
 // jika endpoint tidak ditemukan
 app.all('*', (req, res, next) => {
