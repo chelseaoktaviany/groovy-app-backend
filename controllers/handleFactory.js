@@ -49,8 +49,6 @@ exports.createOne = (Model, message) =>
   catchAsync(async (req, res, next) => {
     const doc = await Model.create(req.body);
 
-    console.log(doc);
-
     // mengirimkan response
     res.status(201).json({
       status: 0,
