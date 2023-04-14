@@ -23,6 +23,7 @@ const userSchema = new mongoose.Schema(
           return [true, 'Mohon isi nama pengguna Anda'];
         }
       },
+      trim: true,
     },
     emailAddress: {
       type: String,
