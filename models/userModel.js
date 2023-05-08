@@ -79,6 +79,7 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    activeExpiredByDate: Date,
     otp: {
       type: Number,
       expires: '5m',
@@ -102,10 +103,22 @@ const userSchema = new mongoose.Schema(
         }
       },
     },
+    point: {
+      type: Number,
+      default: function () {
+        if (this.role === 'user') {
+          return 0;
+        }
+      },
+    },
     paymentStatus: {
       type: String,
       enum: ['done', 'process'],
-      default: undefined,
+      default: function () {
+        if (this.role === 'user') {
+          return undefined;
+        }
+      },
     },
   },
   { timestamps: true, versionKey: false }
