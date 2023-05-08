@@ -142,6 +142,10 @@ exports.signUp = catchAsync(async (req, res, next) => {
       newUser.otp = await generateAndSaveOtp(newUser);
 
       newUser.active = true;
+      newUser.activeExpiredByDate = new Date(
+        Date.now() + 60 * 60 * 24 * 30 * 1000
+      ); // berlaku selama 1 bulan
+
       await newUser.save({ validateBeforeSave: false });
       await new Email(newUser).sendOTPEmail();
 
