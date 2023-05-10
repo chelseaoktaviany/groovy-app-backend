@@ -1,6 +1,8 @@
 const multer = require('multer');
 const sharp = require('sharp');
 
+const path = require('path');
+
 // models
 const Package = require('../models/packageModel');
 
@@ -11,35 +13,43 @@ const factory = require('./handleFactory');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 
-const multerStorage = multer.memoryStorage();
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/packages/');
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `package-${Date.now()}${ext}`);
+  },
+});
 
-const multerFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith('image')) {
+const fileFilter = (req, file, cb) => {
+  if (
+    file.mimetype === 'image/png' ||
+    file.mimetype === 'image/jpg' ||
+    file.mimetype === 'image/jpeg'
+  ) {
     cb(null, true);
   } else {
     cb(new AppError('Mohon isi gambar paket internet', 400), false);
   }
 };
 
-const upload = multer({ storage: multerStorage, fileFilter: multerFilter });
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: { fileSize: 1024 * 1024 * 2 },
+});
 
 exports.uploadPackagePhoto = upload.single('packageImage');
 
-// resizing uploaded image
-exports.resizePackagePhoto = catchAsync(async (req, res, next) => {
-  if (!req.file) return next();
-
-  // package image
-  req.body.packageImage = `package-${Date.now()}.jpeg`;
-
-  await sharp(req.file.buffer)
-    .resize(1000, 500)
-    .toFormat('jpeg')
-    .jpeg({ quality: 90 })
-    .toFile(`public/img/packages/${req.body.packageImage}`);
-
-  next();
-});
+const filterObj = (obj, ...allowedFields) => {
+  const newObj = {};
+  Object.keys(obj).forEach((el) => {
+    if (allowedFields.includes(el)) newObj[el] = obj[el];
+  });
+  return newObj;
+};
 
 // get all packages
 exports.getAllPackages = factory.getAll(
@@ -55,10 +65,37 @@ exports.getPackage = factory.getOne(
 );
 
 // create package
-exports.createPackage = factory.createOne(
-  Package,
-  'Berhasil menambahkan data paket internet'
-);
+exports.createPackage = catchAsync(async (req, res, next) => {
+  const filteredBody = filterObj(
+    req.body,
+    'packageName',
+    'packageDescription',
+    'packagePrice',
+    'packageType'
+  );
+
+  const packageImage = req.file.path.replace(/\\/g, '/');
+
+  const outputPath = path
+    .join('uploads', 'packages', `resized-${req.file.filename}`)
+    .replace(/\\/g, '/');
+
+  sharp(packageImage).resize({ width: 500, height: 500 }).toFile(outputPath);
+
+  const newPackage = await Package.create({
+    packageName: filteredBody.packageName,
+    packageDescription: filteredBody.packageDescription,
+    packagePrice: filteredBody.packagePrice,
+    packageImage: outputPath,
+    packageType: filteredBody.packageType,
+  });
+
+  res.status(201).json({
+    status: 0,
+    msg: 'Berhasil menambahkan data paket internet',
+    data: newPackage,
+  });
+});
 
 // edit package
 exports.updatePackage = factory.updateOne(
