@@ -14,7 +14,6 @@ router
     authController.protect,
     authController.restrictTo('admin', 'super-admin'),
     packageController.uploadPackagePhoto,
-    packageController.resizePackagePhoto,
     packageController.createPackage
   );
 
@@ -25,7 +24,6 @@ router
     authController.protect,
     authController.restrictTo('admin', 'super-admin'),
     packageController.uploadPackagePhoto,
-    packageController.resizePackagePhoto,
     packageController.updatePackage
   )
   .delete(packageController.deletePackage);
