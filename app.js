@@ -39,7 +39,8 @@ app.use(cors());
 app.options('*', cors());
 
 // menyajikan static public
-app.use(express.static(path.join(__dirname, 'public')));
+const dirname = path.resolve();
+app.use('/v1/ga/uploads', express.static(path.join(dirname, 'uploads')));
 
 // set security http headers
 app.use(helmet());
