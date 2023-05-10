@@ -1,6 +1,8 @@
 const multer = require('multer');
 const sharp = require('sharp');
 
+const path = require('path');
+
 // models
 const User = require('../models/userModel');
 
@@ -12,35 +14,46 @@ const AppError = require('../utils/appError');
 const factory = require('./handleFactory');
 
 // multer
-const multerStorage = multer.memoryStorage();
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/users/');
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `user-${Date.now()}${ext}`);
+  },
+});
 
-const multerFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith('image')) {
+// multer filter
+const fileFilter = (req, file, cb) => {
+  if (
+    file.mimetype === 'image/png' ||
+    file.mimetype === 'image/jpg' ||
+    file.mimetype === 'image/jpeg'
+  ) {
     cb(null, true);
   } else {
     cb(new AppError('Mohon upload gambar profile Anda', 400), false);
   }
 };
 
-const upload = multer({ storage: multerStorage, fileFilter: multerFilter });
+// using multer middleware multi-part form data (upload pics)
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: { fileSize: 1024 * 1024 * 2 },
+});
 
 // upload user photo
 exports.uploadUserImage = upload.single('profileImage');
 
-// resizing user photo
-exports.resizeUserImage = catchAsync(async (req, res, next) => {
-  if (!req.file) return next();
-
-  req.body.profileImage = `user-${req.user.id}-${Date.now()}.jpeg`;
-
-  sharp(req.file.buffer)
-    .resize(500, 500)
-    .toFormat('jpeg')
-    .jpeg({ quality: 90 })
-    .toFile(`public/img/users/${req.body.profileImage}`);
-
-  next();
-});
+const filterObj = (obj, ...allowedFields) => {
+  const newObj = {};
+  Object.keys(obj).forEach((el) => {
+    if (allowedFields.includes(el)) newObj[el] = obj[el];
+  });
+  return newObj;
+};
 
 // memperolehkan semua user
 exports.getAllUsers = factory.getAll(User, 'Berhasil mengakses data pengguna');
@@ -55,24 +68,44 @@ exports.getMe = catchAsync(async (req, res, next) => {
 exports.getUser = factory.getOne(User, { path: '_id' }, 'Success');
 
 // mengubah user (JANGAN mengubah password dengan ini) NANTI
-// exports.updateUserProfile = catchAsync(async (req, res, next) => {
-//   const id = req.params.id;
-//   const { firstName, lastName, nomorHP, emailAddress, profileImage } = req.body;
+exports.updateUserProfile = catchAsync(async (req, res, next) => {
+  const id = req.params.id;
 
-//   const user = await User.findByIdAndUpdate(
-//     id,
-//     { firstName, lastName, nomorHP, emailAddress, profileImage },
-//     { new: true, runValidators: true }
-//   );
+  const filteredBody = filterObj(
+    req.body,
+    'firstName',
+    'lastName',
+    'nomorHP',
+    'emailAddress'
+  );
 
-//   await user.save({ validateBeforeSave: false });
+  const profileImage = req.file.path.replace(/\\/g, '/');
+  const outputPath = path
+    .join('uploads', 'users', `resized-${req.file.filename}`)
+    .replace(/\\/g, '/');
 
-//   res.status(201).json({
-//     status: 0,
-//     msg: 'Berhasil mengubah data pengguna',
-//     data: user,
-//   });
-// });
+  sharp(profileImage).resize({ width: 500, height: 500 }).toFile(outputPath);
+
+  const user = await User.findByIdAndUpdate(
+    id,
+    {
+      firstName: filteredBody.firstName,
+      lastName: filteredBody.lastName,
+      nomorHP: filteredBody.nomorHP,
+      emailAddress: filteredBody.emailAddress,
+      profileImage: outputPath,
+    },
+    { new: true, runValidators: true }
+  );
+
+  await user.save({ validateBeforeSave: false });
+
+  res.status(201).json({
+    status: 0,
+    msg: 'Berhasil mengubah data pengguna',
+    data: user,
+  });
+});
 
 // edit an user (set user status)
 // exports.updateUser = factory.updateOne(User, 'Berhasil mengubah status user');

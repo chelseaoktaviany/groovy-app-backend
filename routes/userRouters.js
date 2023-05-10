@@ -32,13 +32,12 @@ router.use(authController.protect);
 router.get('/me', userController.getMe, userController.getUser);
 
 // update user
-// router.patch(
-//   '/updateProfile',
-//   userController.getMe,
-//   userController.uploadUserImage,
-//   userController.resizeUserImage,
-//   userController.updateUserProfile
-// );
+router.patch(
+  '/updateProfile',
+  userController.getMe,
+  userController.uploadUserImage,
+  userController.updateUserProfile
+);
 
 // restriction middleware
 router.use(authController.restrictTo('admin', 'super-admin'));
@@ -48,7 +47,6 @@ router.route('/').get(userController.getAllUsers);
 router.route('/:id').get(userController.getUser);
 // .patch(
 //   userController.uploadUserImage,
-//   userController.resizeUserImage,
 //   userController.updateUser
 // );
 
