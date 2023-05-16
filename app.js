@@ -20,6 +20,7 @@ const globalErrorHandler = require('./controllers/errorController');
 const userRouters = require('./routes/userRouters');
 const packageRouters = require('./routes/packageRouters');
 const installationRouters = require('./routes/installationRouters');
+const transactionRouters = require('./routes/transactionRouters');
 
 // memulai aplikasi express
 const app = express();
@@ -148,6 +149,7 @@ app.use((req, res, next) => {
 app.use('/v1/ga/users', userRouters);
 app.use('/v1/ga/packages', packageRouters);
 app.use('/v1/ga/installations', installationRouters);
+app.use('/v1/ga/transactions', transactionRouters);
 
 // jika endpoint tidak ditemukan
 app.all('*', (req, res, next) => {
