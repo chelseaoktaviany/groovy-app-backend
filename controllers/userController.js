@@ -67,7 +67,7 @@ exports.getMe = catchAsync(async (req, res, next) => {
 
 exports.getUser = factory.getOne(User, { path: '_id' }, 'Success');
 
-// mengubah user (JANGAN mengubah password dengan ini) NANTI
+// mengubah user (JANGAN mengubah password dengan ini)
 exports.updateUserProfile = catchAsync(async (req, res, next) => {
   const id = req.params.id;
 
@@ -108,4 +108,19 @@ exports.updateUserProfile = catchAsync(async (req, res, next) => {
 });
 
 // edit an user (set user status)
-// exports.updateUser = factory.updateOne(User, 'Berhasil mengubah status user');
+exports.updateUserStatus = catchAsync(async (req, res, next) => {
+  const id = req.params.id;
+  const { active } = req.body;
+
+  const user = await User.findByIdAndUpdate(
+    id,
+    { active },
+    { new: true, runValidators: false }
+  );
+
+  res.status(200).json({
+    status: 0,
+    msg: 'Berhasil mengubah status pengguna',
+    data: user,
+  });
+});

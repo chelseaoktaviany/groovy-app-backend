@@ -2,34 +2,32 @@ const express = require('express');
 
 // controllers
 const adminAuthController = require('../controllers/adminAuthController');
-const packageController = require('../controllers/packageController');
+const faqController = require('../controllers/faqController');
 
 const router = express.Router();
 
 // package route
 router
   .route('/')
-  .get(packageController.getAllPackages)
+  .get(faqController.getAllFaqs)
   .post(
     adminAuthController.protect,
     adminAuthController.restrictTo('admin'),
-    packageController.uploadPackagePhoto,
-    packageController.createPackage
+    faqController.createFaq
   );
 
 router
   .route('/:id')
-  .get(packageController.getPackage)
+  .get(faqController.getFaq)
   .patch(
     adminAuthController.protect,
     adminAuthController.restrictTo('admin'),
-    packageController.uploadPackagePhoto,
-    packageController.updatePackage
+    faqController.updateFaq
   )
   .delete(
     adminAuthController.protect,
     adminAuthController.restrictTo('admin'),
-    packageController.deletePackage
+    faqController.deleteFaq
   );
 
 module.exports = router;

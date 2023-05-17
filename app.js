@@ -17,10 +17,15 @@ require('dotenv').config({ path: './config.env' });
 // untuk router & error handling (NANTI)
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
+
+// users
 const userRouters = require('./routes/userRouters');
+const adminRouters = require('./routes/adminRouters');
+
 const packageRouters = require('./routes/packageRouters');
 const installationRouters = require('./routes/installationRouters');
 const transactionRouters = require('./routes/transactionRouters');
+const faqRouters = require('./routes/faqRouters');
 
 // memulai aplikasi express
 const app = express();
@@ -147,9 +152,11 @@ app.use((req, res, next) => {
 
 // api routes
 app.use('/v1/ga/users', userRouters);
+app.use('/v1/ga/admins', adminRouters);
 app.use('/v1/ga/packages', packageRouters);
 app.use('/v1/ga/installations', installationRouters);
 app.use('/v1/ga/transactions', transactionRouters);
+app.use('/v1/ga/faqs', faqRouters);
 
 // jika endpoint tidak ditemukan
 app.all('*', (req, res, next) => {
