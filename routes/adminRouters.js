@@ -1,24 +1,26 @@
 const express = require('express');
 
 // controller (inc)
-const adminAuthController = require('../controllers/adminAuthController');
+const authController = require('../controllers/authController');
 
 // using router
 const router = express.Router();
 
 // // authentication
-router.post('/signIn', adminAuthController.signInAdmin);
-router.get('/signOut', adminAuthController.signOutAdmin);
+router.post('/signIn', authController.signInAdmin);
+router.get('/signOut', authController.signOutAdmin);
 
 // password account creation
-router.post('/createPassword', adminAuthController.createPassword);
+router.post('/createPassword', authController.createPassword);
 
 // router protection (nanti)
-router.use(adminAuthController.protect);
+router.use(authController.protect);
+
+router.patch('/changePassword', authController.changePassword);
+
+router.use(authController.restrictTo('admin', 'super-admin'));
 
 // admin manipulation
-router.post('/', adminAuthController.createAdmin);
-
-router.patch('/changePassword', adminAuthController.changePassword);
+router.post('/', authController.createAdmin);
 
 module.exports = router;
