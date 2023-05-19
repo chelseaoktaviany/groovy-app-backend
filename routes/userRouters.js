@@ -2,7 +2,6 @@ const express = require('express');
 
 // controller (inc)
 const authController = require('../controllers/authController');
-const adminAuthController = require('../controllers/adminAuthController');
 const userController = require('../controllers/userController');
 
 // middlewares
@@ -24,30 +23,22 @@ router.get('/resendOTP', resendOTPRateLimiter, authController.resendOTP);
 router.post('/verified', verifyOTPRateLimiter, authController.verifyOTP);
 
 // router protection (nanti)
-// router.use(authController.protect);
+router.use(authController.protect);
 
 // get user
-router.get(
-  '/me',
-  authController.protect,
-  userController.getMe,
-  userController.getUser
-);
+router.get('/me', userController.getMe, userController.getUser);
 
 // update user
 router.patch(
   '/updateProfile',
-  authController.protect,
   userController.getMe,
   userController.uploadUserImage,
   userController.updateUserProfile
 );
 
 // restriction middleware
-router.use(
-  adminAuthController.protect,
-  adminAuthController.restrictTo('admin', 'super-admin')
-);
+
+router.use(authController.restrictTo('admin', 'super-admin'));
 
 // user management
 router.route('/').get(userController.getAllUsers);
