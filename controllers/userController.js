@@ -124,3 +124,25 @@ exports.updateUserStatus = catchAsync(async (req, res, next) => {
     data: user,
   });
 });
+
+// update point for an user
+// exports.updateUserPoint = catchAsync(async (req, res, next) => {
+//   const id = req.params.id;
+//   const { point } = req.body;
+
+//   const user = await User.findByIdAndUpdate(
+//     id,
+//     { point },
+//     { new: true, runValidators: false }
+//   );
+
+//   if (!user) {
+//     return next(new AppError('No user found'));
+//   }
+
+//   res.status(200).json({
+//     status: 0,
+//     msg: 'Berhasil mengubah point untuk pengguna',
+//     data: user,
+//   });
+// });
