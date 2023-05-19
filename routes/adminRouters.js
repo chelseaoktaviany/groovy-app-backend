@@ -11,10 +11,10 @@ router.post('/signIn', adminAuthController.signInAdmin);
 router.get('/signOut', adminAuthController.signOutAdmin);
 
 // password account creation
-// router.patch('/createPassword', adminAuthController.createPassword);
+router.post('/createPassword', adminAuthController.createPassword);
 
 // router protection (nanti)
-// router.use(adminAuthController.protect);
+router.use(adminAuthController.protect);
 
 // admin manipulation
 router.post('/', adminAuthController.createAdmin);
