@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-// const crypto = require('crypto');
+const crypto = require('crypto');
 const { promisify } = require('util');
 
 // utilities
@@ -43,37 +43,39 @@ exports.createAdmin = catchAsync(async (req, res, next) => {
   const { name, emailAddress } = req.body;
 
   // membuat link token aktivasi
-  // const adminToken = crypto.randomBytes(20).toString('hex');
-  // const adminTokenExpires = Date.now() + 24 * 60 * 60 * 1000; // token valid selama 24 jam
+  const adminToken = crypto.randomBytes(20).toString('hex');
+  const adminTokenExpires = Date.now() + 24 * 60 * 60 * 1000; // token valid selama 24 jam
 
   const admin = await Admin.create({
     name,
     emailAddress,
-    // adminToken,
-    // adminTokenExpires,
+    adminToken,
+    adminTokenExpires,
     role: 'admin',
   });
 
   admin.active = true;
   admin.save({ validateBeforeSave: false });
 
-  createSendToken(
-    admin,
-    201,
-    'Success! Berhasil pembuatan akun admin',
-    req,
-    res
-  );
+  console.log(adminToken);
 
-  // res.status(201).json({
-  //   status: 0,
-  //   msg: 'Success! Berhasil pembuatan akun admin',
-  //   data: {
-  //     name: admin.name,
-  //     emailAddress: admin.emailAddress,
-  //     role: admin.role,
-  //   },
-  // });
+  res.status(201).json({
+    status: 0,
+    msg: 'Success! Berhasil pembuatan akun admin',
+    data: {
+      name: admin.name,
+      emailAddress: admin.emailAddress,
+      role: admin.role,
+    },
+  });
+
+  // createSendToken(
+  //   admin,
+  //   201,
+  //   'Success! Berhasil pembuatan akun admin',
+  //   req,
+  //   res
+  // );
 
   // try {
   //   admin.active = true;
@@ -105,52 +107,29 @@ exports.createAdmin = catchAsync(async (req, res, next) => {
   // }
 });
 
-// exports.createPassword = catchAsync(async (req, res, next) => {
-//   const { password, passwordConfirm } = req.body;
+exports.createPassword = catchAsync(async (req, res, next) => {
+  const { password, passwordConfirm } = req.body;
 
-//   const admin = await Admin.findOne({ adminToken: req.query.token });
+  const admin = await Admin.findOne({ adminToken: req.query.token });
 
-//   if (!admin) {
-//     return next(new AppError('Token tidak valid', 401));
-//   }
+  if (!admin) {
+    return next(new AppError('Token tidak valid', 401));
+  }
 
-//   if (admin.adminTokenExpires < Date.now()) {
-//     return next(new AppError('Token sudah kedaluarsa', 401));
-//   }
+  if (admin.adminTokenExpires < Date.now()) {
+    return next(new AppError('Token sudah kedaluarsa', 401));
+  }
 
-//   admin.password = password;
-//   admin.passwordConfirm = passwordConfirm;
+  admin.password = password;
+  admin.passwordConfirm = passwordConfirm;
 
-//   await admin.save({ validateBeforeSave: false });
+  admin.adminToken = undefined;
+  admin.adminTokenExpires = undefined;
 
-//   createSendToken(admin, 201, 'Berhasil membuat password admin');
-// });
+  await admin.save({ validateBeforeSave: false });
 
-// exports.signInAdmin = catchAsync(async (req, res, next) => {
-//   const { , password } = req.body;
-
-//   const admin = await Admin.findOne({ username }).select('+password');
-
-//   // memeriksa jika username terisi?
-//   if (!username || !password) {
-//     return next(new AppError('Mohon isi username dan password Anda', 400));
-//   }
-
-//   // memeriksa jika user sudah ada && password salah
-//   const matchedPassword = await admin.correctPassword(password, admin.password);
-
-//   if (!admin || !matchedPassword) {
-//     return next(new AppError('Password atau username salah', 401));
-//   }
-
-//   createSendToken(
-//     admin,
-//     201,
-//     'Success! Berhasil melakukan sign in admin',
-//     req,
-//     res
-//   );
-// });
+  createSendToken(admin, 201, 'Berhasil membuat password admin', req, res);
+});
 
 exports.signInAdmin = catchAsync(async (req, res, next) => {
   const { name, password } = req.body;
@@ -275,14 +254,13 @@ exports.restrictTo = (...roles) => {
 exports.changePassword = catchAsync(async (req, res, next) => {
   const admin = await Admin.findById(req.admin.id).select('+password');
 
-  console.log(admin);
-
   // check if the password is correct?
   if (
     !(await admin.correctPassword(req.body.currentPassword, admin.password))
   ) {
     return next(new AppError('Password lama Anda salah.', 401));
   }
+
   // 3) if so, update password
   admin.password = req.body.password;
   admin.passwordConfirm = req.body.passwordConfirm;
