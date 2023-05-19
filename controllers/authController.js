@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-// const crypto = require('crypto');
+const crypto = require('crypto');
 const { promisify } = require('util');
 // utilities
 const catchAsync = require('../utils/catchAsync');
@@ -10,6 +10,7 @@ const Email = require('../utils/email');
 
 // menggunakan model
 const User = require('../models/userModel');
+const Admin = require('../models/adminModel');
 
 // global variable
 let emailAddress;
@@ -261,6 +262,126 @@ exports.signOut = catchAsync(async (req, res, next) => {
   res.status(200).json({ status: 0, msg: 'Success' });
 });
 
+// admin
+exports.createAdmin = catchAsync(async (req, res, next) => {
+  const { name } = req.body;
+
+  // membuat link token aktivasi
+  const adminToken = crypto.randomBytes(20).toString('hex');
+  const adminTokenExpires = Date.now() + 24 * 60 * 60 * 1000; // token valid selama 24 jam
+
+  const admin = await Admin.create({
+    name,
+    emailAddress,
+    adminToken,
+    adminTokenExpires,
+    role: 'admin',
+  });
+
+  admin.active = true;
+  admin.save({ validateBeforeSave: false });
+
+  console.log(adminToken);
+
+  res.status(201).json({
+    status: 0,
+    msg: 'Success! Berhasil pembuatan akun admin',
+    data: {
+      name: admin.name,
+      emailAddress: admin.emailAddress,
+      role: admin.role,
+    },
+  });
+
+  // try {
+  //   admin.active = true;
+  //   admin.save({ validateBeforeSave: false });
+
+  //   send confirmation email
+  //   const url = `http://127.0.0.1:${process.env.PORT}/v1/ga/users/createPassword?token=${adminToken}`;
+
+  //   await new Email(admin, url).sendWelcome();
+
+  //   res.status(201).json({
+  //     status: 0,
+  //     msg: 'Success! Berhasil pembuatan akun admin',
+  //     data: {
+  //       name: admin.name,
+  //       emailAddress: admin.emailAddress,
+  //       role: admin.role,
+  //     },
+  //   });
+  // } catch (err) {
+  //   admin.active = false;
+  //   await admin.save({ validateBeforeSave: false });
+  //   return next(
+  //     new AppError(
+  //       'Ada kesalahan yang terjadi saat mengirim e-mail, mohon dicoba lagi',
+  //       500
+  //     )
+  //   );
+  // }
+});
+
+exports.signInAdmin = catchAsync(async (req, res, next) => {
+  const { name, password } = req.body;
+
+  const admin = await Admin.findOne({ name }).select('+password');
+
+  // memeriksa jika username terisi?
+  if (!name || !password) {
+    return next(new AppError('Mohon isi username dan password Anda', 400));
+  }
+
+  // memeriksa jika user sudah ada && password salah
+  const matchedPassword = await admin.correctPassword(password, admin.password);
+
+  if (!admin || !matchedPassword) {
+    return next(new AppError('Password atau username salah', 401));
+  }
+
+  createSendToken(
+    admin,
+    201,
+    'Success! Berhasil melakukan sign in admin',
+    req,
+    res
+  );
+});
+
+exports.signOutAdmin = catchAsync(async (req, res, next) => {
+  res.cookie('jwt', 'loggedout', {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+  });
+
+  res.status(200).json({ status: 0, msg: 'Success' });
+});
+
+exports.createPassword = catchAsync(async (req, res, next) => {
+  const { password, passwordConfirm } = req.body;
+
+  const admin = await Admin.findOne({ adminToken: req.query.token });
+
+  if (!admin) {
+    return next(new AppError('Token tidak valid', 401));
+  }
+
+  if (admin.adminTokenExpires < Date.now()) {
+    return next(new AppError('Token sudah kedaluarsa', 401));
+  }
+
+  admin.password = password;
+  admin.passwordConfirm = passwordConfirm;
+
+  admin.adminToken = undefined;
+  admin.adminTokenExpires = undefined;
+
+  await admin.save({ validateBeforeSave: false });
+
+  createSendToken(admin, 201, 'Berhasil membuat password admin', req, res);
+});
+
 /**
  * protect, perlindungan router
  * @async
@@ -294,13 +415,18 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   // memeriksa jika pengguna sudah ada
   const currentUser = await User.findById(decoded.id);
-  if (!currentUser) {
+  const currentAdmin = await Admin.findById(decoded.id);
+
+  if (!currentUser && !currentAdmin) {
     return next(new AppError('Token itu yang dia miliki sudah tidak ada'));
   }
 
   // grant access to protected route
   req.user = currentUser;
+  req.admin = currentAdmin;
+
   res.locals.user = currentUser;
+  res.locals.admin = currentAdmin;
   next();
 });
 
@@ -316,12 +442,15 @@ exports.isLoggedIn = async (req, res, next) => {
 
       // memeriksa jika pengguna sudah ada
       const currentUser = await User.findById(decoded.id);
-      if (!currentUser) {
+      const currentAdmin = await Admin.findById(decoded.id);
+
+      if (!currentUser && !currentAdmin) {
         return next();
       }
 
       // ada pengguna yang sudah login
       res.locals.user = currentUser;
+      res.locals.admin = currentAdmin;
       return next();
     }
   } catch (err) {
@@ -333,7 +462,7 @@ exports.isLoggedIn = async (req, res, next) => {
 exports.restrictTo = (...roles) => {
   return (req, res, next) => {
     // roles['admin', 'super-admin'], role='user'
-    if (!roles.includes(req.user.role) || !roles.includes(req.admin.role)) {
+    if (!roles.includes(req.admin.role)) {
       return next(
         new AppError('Anda tidak punya izin untuk melakukan tindakan ini', 403)
       );
@@ -342,3 +471,25 @@ exports.restrictTo = (...roles) => {
     next();
   };
 };
+
+// mengubah password untuk admin atau super-admin
+exports.changePassword = catchAsync(async (req, res, next) => {
+  const admin = await Admin.findById(req.admin.id).select('+password');
+
+  // check if the password is correct?
+  if (
+    !(await admin.correctPassword(req.body.currentPassword, admin.password))
+  ) {
+    return next(new AppError('Password lama Anda salah.', 401));
+  }
+
+  // 3) if so, update password
+  admin.password = req.body.password;
+  admin.passwordConfirm = req.body.passwordConfirm;
+  admin.passwordChangedAt = Date.now();
+  await admin.save();
+
+  // User.findByIdAndUpdate will NOT work as intended
+  // 4) log user in, send JWT
+  createSendToken(admin, 200, 'Berhasil mengubah password', req, res);
+});
