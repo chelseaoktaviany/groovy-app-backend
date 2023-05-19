@@ -1,4 +1,3 @@
-const catchAsync = require('../utils/catchAsync');
 const factory = require('./handleFactory');
 
 const Faq = require('../models/faqModel');
@@ -13,7 +12,7 @@ exports.getFaq = factory.getOne(
 
 exports.createFaq = factory.createOne(Faq, 'Berhasil membuat sebuah data FAQ');
 
-exports.updateFaq = catchAsync(async (req, res, next) => {});
+exports.updateFaq = factory.updateOne(Faq, 'Berhasil mengubah status data FAQ');
 
 exports.deleteFaq = factory.deleteOne(
   Faq,
