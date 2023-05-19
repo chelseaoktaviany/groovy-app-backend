@@ -2,11 +2,10 @@ const express = require('express');
 
 const transactionController = require('../controllers/transactionController');
 const authController = require('../controllers/authController');
-const adminAuthController = require('../controllers/adminAuthController');
 
 const router = express.Router();
 
-// router.use(authController.protect);
+router.use(authController.protect);
 
 router.post(
   '/checkout/:packageId',
@@ -14,33 +13,15 @@ router.post(
   transactionController.createPurchaseTransaction
 );
 
-// router.use(authController.restrictTo('Admin'));
+router.use(authController.restrictTo('admin'));
 
-router
-  .route('/')
-  .get(
-    adminAuthController.protect,
-    adminAuthController.restrictTo('admin'),
-    transactionController.getAllTransactions
-  );
+router.route('/').get(transactionController.getAllTransactions);
 //   .post(transactionController.createTransaction);
 
 router
   .route('/:id')
-  .get(
-    adminAuthController.protect,
-    adminAuthController.restrictTo('admin'),
-    transactionController.getTransaction
-  )
-  .patch(
-    adminAuthController.protect,
-    adminAuthController.restrictTo('admin'),
-    transactionController.updateTransaction
-  )
-  .delete(
-    adminAuthController.protect,
-    adminAuthController.restrictTo('admin'),
-    transactionController.deleteTransaction
-  );
+  .get(transactionController.getTransaction)
+  .patch(transactionController.updateTransaction)
+  .delete(transactionController.deleteTransaction);
 
 module.exports = router;
