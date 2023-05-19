@@ -152,6 +152,32 @@ exports.createAdmin = catchAsync(async (req, res, next) => {
 //   );
 // });
 
+exports.signInAdmin = catchAsync(async (req, res, next) => {
+  const { name, password } = req.body;
+
+  const admin = await Admin.findOne({ name }).select('+password');
+
+  // memeriksa jika username terisi?
+  if (!name || !password) {
+    return next(new AppError('Mohon isi username dan password Anda', 400));
+  }
+
+  // memeriksa jika user sudah ada && password salah
+  const matchedPassword = await admin.correctPassword(password, admin.password);
+
+  if (!admin || !matchedPassword) {
+    return next(new AppError('Password atau username salah', 401));
+  }
+
+  createSendToken(
+    admin,
+    201,
+    'Success! Berhasil melakukan sign in admin',
+    req,
+    res
+  );
+});
+
 exports.signOutAdmin = catchAsync(async (req, res, next) => {
   res.cookie('jwt', 'loggedout', {
     expires: new Date(Date.now() + 10 * 1000),
