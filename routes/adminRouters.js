@@ -7,14 +7,14 @@ const adminAuthController = require('../controllers/adminAuthController');
 const router = express.Router();
 
 // // authentication
-// router.post('/signIn', authController.signInAdmin);
+router.post('/signIn', adminAuthController.signInAdmin);
 router.get('/signOut', adminAuthController.signOutAdmin);
 
 // password account creation
-// router.patch('/createPassword', authController.createPassword);
+// router.patch('/createPassword', adminAuthController.createPassword);
 
 // router protection (nanti)
-// router.use(adminController.protect);
+// router.use(adminAuthController.protect);
 
 // admin manipulation
 router.post('/', adminAuthController.createAdmin);
