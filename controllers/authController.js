@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { promisify } = require('util');
+
 // utilities
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
@@ -100,7 +101,7 @@ exports.signUp = catchAsync(async (req, res, next) => {
       status: 0,
       msg: "We've already sent OTP in your e-mail",
       data: {
-        id: newUser._id,
+        userId: newUser.userId,
         firstName: newUser.firstName,
         lastName: newUser.lastName,
         emailAddress: newUser.emailAddress,
