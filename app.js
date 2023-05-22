@@ -26,6 +26,8 @@ const packageRouters = require('./routes/packageRouters');
 const installationRouters = require('./routes/installationRouters');
 const transactionRouters = require('./routes/transactionRouters');
 const faqRouters = require('./routes/faqRouters');
+const pointRouters = require('./routes/pointRouters');
+const voucherRouters = require('./routes/voucherRouters');
 
 // memulai aplikasi express
 const app = express();
@@ -64,7 +66,8 @@ csp.extend(app, {
         'blob',
         'https://*.cloudflare.com/',
         // 'https://bundle.js:8828',
-        `https://localhost:${process.env.PORT}/`,
+        `http://localhost:${process.env.PORT}/`,
+        'http://localhost:3000/',
       ],
       'worker-src': [
         'self',
@@ -73,7 +76,8 @@ csp.extend(app, {
         'blob:',
         'https://*.cloudflare.com/',
         // 'https://bundle.js:*',
-        `https://localhost:${process.env.PORT}/`,
+        `http://localhost:${process.env.PORT}/`,
+        'http://localhost:3000/',
       ],
       'frame-src': [
         'self',
@@ -82,7 +86,8 @@ csp.extend(app, {
         'blob:',
         'https://*.cloudflare.com/',
         // 'https://bundle.js:*',
-        `https://localhost:${process.env.PORT}/`,
+        `http://localhost:${process.env.PORT}/`,
+        'http://localhost:3000/',
       ],
       'img-src': [
         'self',
@@ -91,7 +96,8 @@ csp.extend(app, {
         'blob:',
         'https://*.cloudflare.com/',
         // 'https://bundle.js:*',
-        `https://localhost:${process.env.PORT}/`,
+        `http://localhost:${process.env.PORT}/`,
+        'http://localhost:3000/',
       ],
       'connect-src': [
         'self',
@@ -100,7 +106,8 @@ csp.extend(app, {
         'blob:',
         'https://*.cloudflare.com/',
         // 'https://bundle.js:*',
-        `https://localhost:${process.env.PORT}/`,
+        `http://localhost:${process.env.PORT}/`,
+        'http://localhost:3000/',
       ],
     },
   },
@@ -157,6 +164,8 @@ app.use('/v1/ga/packages', packageRouters);
 app.use('/v1/ga/installations', installationRouters);
 app.use('/v1/ga/transactions', transactionRouters);
 app.use('/v1/ga/faqs', faqRouters);
+app.use('/v1/ga/points', pointRouters);
+app.use('/v1/ga/vouchers', voucherRouters);
 
 // jika endpoint tidak ditemukan
 app.all('*', (req, res, next) => {
