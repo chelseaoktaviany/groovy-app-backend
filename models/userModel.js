@@ -4,6 +4,7 @@ const validator = require('validator');
 // membuat sebuah skema
 const userSchema = new mongoose.Schema(
   {
+    userId: { type: String, unique: true },
     firstName: {
       type: String,
       required: [true, 'Mohon isi nama awal pengguna Anda'],
@@ -28,11 +29,7 @@ const userSchema = new mongoose.Schema(
     },
     nomorHP: {
       type: String,
-      required: function () {
-        if (this.role === 'user') {
-          return [true, 'Mohon isi nomor HP Anda'];
-        }
-      },
+      required: [true, 'Mohon isi nomor HP Anda'],
       sparse: true,
       unique: true,
       trim: true,
@@ -73,6 +70,17 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true, versionKey: false }
 );
+
+userSchema.pre('save', function (next) {
+  const doc = this;
+  if (doc.isNew) {
+    const timestamp = new Date().getTime().toString();
+    const nomorHP = doc.nomorHP;
+    const userIdString = timestamp + nomorHP;
+    doc.userId = userIdString;
+  }
+  next();
+});
 
 const User = mongoose.model('User', userSchema);
 
