@@ -29,6 +29,7 @@ const faqRouters = require('./routes/faqRouters');
 const pointRouters = require('./routes/pointRouters');
 const voucherRouters = require('./routes/voucherRouters');
 const postRouters = require('./routes/postRouters');
+const promoRouters = require('./routes/promoRouters');
 
 // memulai aplikasi express
 const app = express();
@@ -168,6 +169,7 @@ app.use('/v1/ga/faqs', faqRouters);
 app.use('/v1/ga/points', pointRouters);
 app.use('/v1/ga/vouchers', voucherRouters);
 app.use('/v1/ga/posts', postRouters);
+app.use('/v1/ga/promos', promoRouters);
 
 // jika endpoint tidak ditemukan
 app.all('*', (req, res, next) => {
