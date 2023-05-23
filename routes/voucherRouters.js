@@ -12,11 +12,13 @@ router.get('/:id', voucherController.getVoucher);
 
 router.use(authController.restrictTo('admin'));
 
-router.route('/').post(voucherController.createVoucher);
+router
+  .route('/')
+  .post(voucherController.uploadVoucherImage, voucherController.createVoucher);
 
 router
   .route('/:id')
-  .patch(voucherController.updateVoucher)
+  .patch(voucherController.uploadVoucherImage, voucherController.updateVoucher)
   .delete(voucherController.deleteVoucher);
 
 module.exports = router;

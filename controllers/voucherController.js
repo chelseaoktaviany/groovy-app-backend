@@ -12,11 +12,11 @@ const Voucher = require('../models/voucherModel');
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/users/');
+    cb(null, 'uploads/vouchers/');
   },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
-    cb(null, `user-${Date.now()}${ext}`);
+    cb(null, `voucher-${Date.now()}${ext}`);
   },
 });
 
