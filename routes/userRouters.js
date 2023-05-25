@@ -47,4 +47,7 @@ router
   .get(userController.getUser)
   .patch(userController.updateUserStatus);
 
+// push user point
+router.route('/:id/point').patch(userController.updateUserPoint);
+
 module.exports = router;
