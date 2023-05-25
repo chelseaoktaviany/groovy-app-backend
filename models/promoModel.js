@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const promoSchema = mongoose.Schema({
+const promoSchema = new mongoose.Schema({
   promoTitle: {
     type: String,
     require: [true, 'Mohon isi judul promo'],

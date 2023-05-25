@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const postSchema = mongoose.Schema({
+const postSchema = new mongoose.Schema({
   postTitle: {
     type: String,
     require: [true, 'Mohon isi judul post'],
