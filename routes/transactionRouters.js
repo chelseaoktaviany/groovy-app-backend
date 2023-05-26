@@ -9,7 +9,6 @@ router.use(authController.protect);
 
 router.post(
   '/checkout/:packageId',
-  authController.protect,
   transactionController.createPurchaseTransaction
 );
 
