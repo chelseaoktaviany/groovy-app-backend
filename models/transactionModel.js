@@ -15,6 +15,10 @@ const transactionSchema = new mongoose.Schema({
     ref: 'User',
     required: [true, 'Transaction harus ada di user'],
   },
+  currency: {
+    type: String,
+    default: 'IDR',
+  },
   amount: {
     type: Number,
     required: [true, 'Transaction harus ada harga'],
