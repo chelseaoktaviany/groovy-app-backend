@@ -14,6 +14,9 @@ const cors = require('cors');
 
 require('dotenv').config({ path: './config.env' });
 
+// memulai aplikasi express
+const app = express();
+
 // untuk router & error handling (NANTI)
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
@@ -29,9 +32,6 @@ const faqRouters = require('./routes/faqRouters');
 const voucherRouters = require('./routes/voucherRouters');
 const postRouters = require('./routes/postRouters');
 const promoRouters = require('./routes/promoRouters');
-
-// memulai aplikasi express
-const app = express();
 
 // trusting proxy
 app.enable('trust proxy');
