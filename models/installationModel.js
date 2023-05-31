@@ -3,23 +3,12 @@ const mongoose = require('mongoose');
 const installationSchema = new mongoose.Schema(
   {
     location: {
-      address: String,
-      kelurahan: String,
-      kecamatan: String,
-      provinsi: String,
-      kodePos: String,
-    },
-    firstName: {
       type: String,
-      required: [true, 'Mohon isi nama awal pelanggan'],
+      required: [true, 'Mohon isi lokasi'],
     },
-    lastName: {
+    name: {
       type: String,
-      required: [true, 'Mohon isi nama akhir pengguna'],
-    },
-    emailAddress: {
-      type: String,
-      required: [true, 'Mohon isi alamat e-mail pelanggan'],
+      required: [true, 'Mohon isi nama Anda'],
     },
     nomorHP: {
       type: String,
