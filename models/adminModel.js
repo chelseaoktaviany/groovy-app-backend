@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 
 // membuat skema admin
 const adminSchema = new mongoose.Schema({
+  adminId: { type: String, unique: true },
   name: {
     type: String,
     required: [true, 'Mohon isi nama Anda'],
@@ -55,6 +56,22 @@ const adminSchema = new mongoose.Schema({
 });
 
 // pre middleware
+adminSchema.pre('save', async function (next) {
+  const admin = this;
+
+  if (!admin.isNew) {
+    return next(); // Only generate userId for new users
+  }
+
+  try {
+    const count = await mongoose.models.Admin.countDocuments();
+    admin.adminId = (count + 1).toString(); // Generate userId based on current user count
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
 adminSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
 
