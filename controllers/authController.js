@@ -288,6 +288,7 @@ exports.createAdmin = catchAsync(async (req, res, next) => {
     status: 0,
     msg: 'Success! Berhasil pembuatan akun admin',
     data: {
+      adminId: admin.adminId,
       name: admin.name,
       emailAddress: admin.emailAddress,
       role: admin.role,
