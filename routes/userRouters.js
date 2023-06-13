@@ -38,7 +38,7 @@ router.patch(
 
 // restriction middleware
 
-router.use(authController.restrictTo('admin', 'super-admin'));
+// router.use(authController.restrictTo('admin', 'super-admin'));
 
 // user management
 router.route('/').get(userController.getAllUsers);
