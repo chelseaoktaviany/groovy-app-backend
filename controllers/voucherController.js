@@ -8,6 +8,7 @@ const AppError = require('../utils/appError');
 
 const factory = require('./handleFactory');
 
+const User = require('../models/userModel');
 const Voucher = require('../models/voucherModel');
 
 const storage = multer.diskStorage({
@@ -79,12 +80,15 @@ exports.createVoucher = catchAsync(async (req, res, next) => {
 
   sharp(voucherImage).resize({ width: 500, height: 500 }).toFile(outputPath);
 
+  const validUntilDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
   const newVoucher = await Voucher.create({
     voucherTitle: filteredBody.voucherTitle,
     voucherType: filteredBody.voucherType,
     voucherDescription: filteredBody.voucherDescription,
     voucherPrice: filteredBody.voucherPrice,
     voucherImage: outputPath,
+    validUntilDate: validUntilDate,
   });
 
   res.status(201).json({
@@ -137,3 +141,58 @@ exports.deleteVoucher = factory.deleteOne(
   Voucher,
   'Berhasil menghapus sebuah data voucher'
 );
+
+// redeeming voucher
+exports.redeemVoucher = catchAsync(async (req, res, next) => {
+  const id = req.params.id;
+  const userId = req.user.id;
+
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return next(new AppError('User not found', 404));
+    }
+
+    const voucher = await Voucher.findOne({ _id: id });
+
+    if (!voucher) {
+      return next(new AppError('Voucher not found', 404));
+    }
+
+    // reduce user's point
+    const point = user.point - voucher.voucherPrice;
+    user.point = point;
+    await user.save();
+
+    if (point <= voucher.voucherPrice) {
+      return next(new AppError("You don't have enough point to redeem", 400));
+    }
+
+    // redeem voucher
+    voucher.redeemedBy = user._id;
+    await voucher.save();
+
+    // check if the voucher has already been redeemed
+    if (voucher.redeemedBy) {
+      return next(new AppError('Voucher has already been redeemed', 400));
+    }
+
+    // add the redeemed voucher to the user's redeemedVouchers array
+    const redeemedVoucher = {
+      voucher: voucher._id,
+      redeemedAt: new Date(),
+    };
+
+    user.redeemedVouchers.push(redeemedVoucher);
+    await user.save();
+
+    res.status(200).json({ status: 0, msg: 'Voucher saved successfully' });
+  } catch (err) {
+    console.err(err);
+
+    return next(
+      new AppError('An error occurred while redeeming the voucher', 500)
+    );
+  }
+});
