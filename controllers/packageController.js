@@ -83,9 +83,7 @@ exports.createPackage = catchAsync(async (req, res, next) => {
   sharp(packageImage).resize({ width: 500, height: 500 }).toFile(outputPath);
 
   if (filteredBody.packageType === 'Monthly') {
-    const packageDateExpiration = new Date(
-      Date.now() + 30 * 24 * 60 * 60 * 1000
-    );
+    const packageNextPayment = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
     const newPackage = await Package.create({
       packageName: filteredBody.packageName,
@@ -93,7 +91,7 @@ exports.createPackage = catchAsync(async (req, res, next) => {
       packagePrice: filteredBody.packagePrice,
       packageImage: outputPath,
       packageType: filteredBody.packageType,
-      packageDateExpiration,
+      packageNextPayment,
     });
 
     res.status(201).json({
@@ -102,9 +100,7 @@ exports.createPackage = catchAsync(async (req, res, next) => {
       data: newPackage,
     });
   } else if (filteredBody.packageType === 'Yearly') {
-    const packageDateExpiration = new Date(
-      Date.now() + 365 * 24 * 60 * 60 * 1000
-    );
+    const packageNextPayment = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
 
     const newPackage = await Package.create({
       packageName: filteredBody.packageName,
@@ -112,7 +108,7 @@ exports.createPackage = catchAsync(async (req, res, next) => {
       packagePrice: filteredBody.packagePrice,
       packageImage: outputPath,
       packageType: filteredBody.packageType,
-      packageDateExpiration,
+      packageNextPayment,
     });
 
     res.status(201).json({
