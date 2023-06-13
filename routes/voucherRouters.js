@@ -10,6 +10,8 @@ router.use(authController.protect);
 router.get('/', voucherController.getAllVouchers);
 router.get('/:id', voucherController.getVoucher);
 
+router.patch('/:id/redeem', voucherController.redeemVoucher);
+
 router.use(authController.restrictTo('admin'));
 
 router
