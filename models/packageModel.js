@@ -20,9 +20,28 @@ const packageSchema = new mongoose.Schema(
       enum: ['Yearly', 'Monthly'],
       required: [true, 'Mohon isi tipe paket internet'],
     },
+    packageDateExpiration: Date,
+    purchasedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
   },
-  { versionKey: false }
+  {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+    versionKey: false,
+  }
 );
+
+packageSchema.pre(/^find/, function (next) {
+  this.populate('purchasedBy').populate({
+    path: 'purchasedBy',
+    select: 'firstName lastName emailAddress nomorHP profileImage',
+  });
+
+  next();
+});
 
 const Package = mongoose.model('Package', packageSchema);
 
