@@ -107,7 +107,7 @@ userSchema.pre(/^find/, function (next) {
   this.populate('purchasedPackage').populate({
     path: 'purchasedPackage',
     select:
-      'packageName packageDescription packagePrice packageImage packageType packageDateExpiration',
+      'packageName packageDescription packagePrice packageImage packageType packageNextPayment',
   });
 
   this.populate('redeemedVouchers').populate({
