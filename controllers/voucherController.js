@@ -160,14 +160,12 @@ exports.redeemVoucher = catchAsync(async (req, res, next) => {
       return next(new AppError('Voucher not found', 404));
     }
 
-    // reduce user's point
-    const point = user.point - voucher.voucherPrice;
-    user.point = point;
-    await user.save();
-
-    if (point <= voucher.voucherPrice) {
+    if (user.point < voucher.voucherPrice) {
       return next(new AppError("You don't have enough point to redeem", 400));
     }
+
+    user.point -= voucher.packagePrice;
+    await user.save();
 
     // redeem voucher
     voucher.redeemedBy = user._id;
