@@ -28,6 +28,9 @@ router.use(authController.protect);
 // get user
 router.get('/me', userController.getMe, userController.getUser);
 
+// get user's package
+router.get('/packages', userController.getPurchasedPackageByUser);
+
 // update user
 router.patch(
   '/updateProfile',
@@ -38,7 +41,7 @@ router.patch(
 
 // restriction middleware
 
-// router.use(authController.restrictTo('admin', 'super-admin'));
+router.use(authController.restrictTo('admin', 'super-admin'));
 
 // user management
 router.route('/').get(userController.getAllUsers);
