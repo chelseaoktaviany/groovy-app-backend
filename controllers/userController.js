@@ -5,6 +5,7 @@ const path = require('path');
 
 // models
 const User = require('../models/userModel');
+const Package = require('../models/packageModel');
 
 // util
 const catchAsync = require('../utils/catchAsync');
@@ -144,5 +145,22 @@ exports.updateUserPoint = catchAsync(async (req, res, next) => {
     status: 0,
     msg: 'Berhasil mengubah point untuk pengguna',
     data: user,
+  });
+});
+
+// get user's purchased package
+exports.getPurchasedPackageByUser = catchAsync(async (req, res, next) => {
+  const id = req.user.id;
+
+  const purchasedPackage = await Package.findOne({ purchasedBy: id });
+
+  if (!purchasedPackage) {
+    return next(new AppError('No purchased package found', 404));
+  }
+
+  res.status(200).json({
+    status: 0,
+    msg: "Retrieved user's data purchased package successfully",
+    data: purchasedPackage,
   });
 });
