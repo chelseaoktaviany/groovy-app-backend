@@ -57,10 +57,12 @@ const userSchema = new mongoose.Schema(
     balance: {
       type: Number,
       default: 0,
+      min: [0, 'Balance cannot have negative number'],
     },
     point: {
       type: Number,
       default: 0,
+      min: [0, 'Point cannot have negative number'],
     },
     paymentStatus: {
       type: String,
