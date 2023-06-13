@@ -20,7 +20,7 @@ const packageSchema = new mongoose.Schema(
       enum: ['Yearly', 'Monthly'],
       required: [true, 'Mohon isi tipe paket internet'],
     },
-    packageDateExpiration: Date,
+    packageNextPayment: Date,
     purchasedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
