@@ -67,8 +67,29 @@ const userSchema = new mongoose.Schema(
       enum: ['done', 'process'],
       default: undefined,
     },
+    purchasedPackage: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Package',
+    },
+    redeemedVouchers: [
+      {
+        voucher: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Voucher',
+        },
+        redeemedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
-  { timestamps: true, versionKey: false }
+  {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+    timestamps: true,
+    versionKey: false,
+  }
 );
 
 userSchema.pre('save', function (next) {
@@ -79,6 +100,22 @@ userSchema.pre('save', function (next) {
     const userIdString = timestamp + nomorHP;
     doc.userId = userIdString;
   }
+  next();
+});
+
+userSchema.pre(/^find/, function (next) {
+  this.populate('purchasedPackage').populate({
+    path: 'purchasedPackage',
+    select:
+      'packageName packageDescription packagePrice packageImage packageType packageDateExpiration',
+  });
+
+  this.populate('redeemedVouchers').populate({
+    path: 'redeemedVouchers',
+    select:
+      'voucherName, voucherDescription voucherPrice voucherImage validUntilDate',
+  });
+
   next();
 });
 
