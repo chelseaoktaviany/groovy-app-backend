@@ -8,6 +8,7 @@ const voucherSchema = mongoose.Schema(
     },
     voucherType: {
       type: String,
+      enum: ['Food', 'Token', 'Pulsa'],
       require: [true, 'Mohon isi tipe voucher'],
     },
     voucherDescription: {
