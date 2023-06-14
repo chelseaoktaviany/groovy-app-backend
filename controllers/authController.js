@@ -155,6 +155,8 @@ exports.signIn = catchAsync(async (req, res, next) => {
 
     await new Email(user).sendOTPEmail();
 
+    console.log(user.otp);
+
     res.status(200).json({
       status: 0,
       msg: "We've already sent OTP in your e-mail",
