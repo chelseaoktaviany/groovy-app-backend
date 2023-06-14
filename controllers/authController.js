@@ -267,6 +267,8 @@ exports.signOut = catchAsync(async (req, res, next) => {
 
 // admin
 exports.createAdmin = catchAsync(async (req, res, next) => {
+  emailAddress = req.body.emailAddress;
+
   const { name } = req.body;
 
   // membuat link token aktivasi
