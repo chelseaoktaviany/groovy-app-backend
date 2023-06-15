@@ -22,6 +22,13 @@ const faqSchema = new mongoose.Schema(
   { versionKey: false }
 );
 
+// exclude isdisabled: true
+faqSchema.pre(/^find/, function (next) {
+  // this points to the current query
+  this.find({ isDisabled: { $ne: true } });
+  next();
+});
+
 const Faq = mongoose.model('Faq', faqSchema);
 
 module.exports = Faq;
