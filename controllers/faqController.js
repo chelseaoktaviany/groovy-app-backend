@@ -25,17 +25,9 @@ exports.deleteFaq = factory.deleteOne(
 exports.disableFaq = catchAsync(async (req, res, next) => {
   const id = req.params.id;
 
-  const updatedFaq = await Faq.findByIdAndUpdate(
-    id,
-    {
-      isDisabled: true,
-    },
-    { new: true, runValidators: true }
-  );
-
-  // if (updatedFaq) {
-  //   return next(new AppError('No faq found', 404));
-  // }
+  const updatedFaq = await Faq.findById(id);
+  updatedFaq.isDisabled = true;
+  await updatedFaq.save();
 
   res.status(200).json({
     status: 0,
