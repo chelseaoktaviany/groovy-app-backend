@@ -6,13 +6,9 @@ const faqSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Mohon isi judul QnA'],
     },
-    faqQuestion: {
+    faqContent: {
       type: String,
       required: [true, 'Mohon isi pertanyaan'],
-    },
-    faqAnswer: {
-      type: String,
-      required: [true, 'Mohon isi jawaban'],
     },
     isDisabled: {
       type: Boolean,
