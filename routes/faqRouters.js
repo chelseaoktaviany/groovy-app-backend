@@ -18,6 +18,7 @@ router.use(authController.restrictTo('admin'));
 router.route('/').post(faqController.createFaq);
 
 router.route('/:id/disabled').patch(faqController.disableFaq);
+router.route('/:id/enabled').patch(faqController.enableFaq);
 
 router
   .route('/:id')
