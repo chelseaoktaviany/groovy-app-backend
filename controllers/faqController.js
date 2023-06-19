@@ -25,13 +25,37 @@ exports.deleteFaq = factory.deleteOne(
 exports.disableFaq = catchAsync(async (req, res, next) => {
   const id = req.params.id;
 
-  const updatedFaq = await Faq.findById(id);
+  const updatedFaq = await Faq.findOne({ _id: id });
+
+  if (!updatedFaq) {
+    return next(new AppError('No faq found', 404));
+  }
+
   updatedFaq.isDisabled = true;
   await updatedFaq.save({ validateBeforeSave: false });
 
   res.status(200).json({
     status: 0,
     msg: 'Disabled faq successfully',
+    data: updatedFaq,
+  });
+});
+
+exports.enableFaq = catchAsync(async (req, res, next) => {
+  const id = req.params.id;
+
+  const updatedFaq = await Faq.findOne({ _id: id });
+
+  if (!updatedFaq) {
+    return next(new AppError('No faq found', 404));
+  }
+
+  updatedFaq.isDisabled = false;
+  await updatedFaq.save({ validateBeforeSave: false });
+
+  res.status(200).json({
+    status: 0,
+    msg: 'Enabled faq successfully',
     data: updatedFaq,
   });
 });
