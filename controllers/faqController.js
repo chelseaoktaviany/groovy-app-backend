@@ -27,7 +27,7 @@ exports.disableFaq = catchAsync(async (req, res, next) => {
 
   const updatedFaq = await Faq.findById(id);
   updatedFaq.isDisabled = true;
-  await updatedFaq.save();
+  await updatedFaq.save({ validateBeforeSave: false });
 
   res.status(200).json({
     status: 0,
