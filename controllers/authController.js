@@ -271,7 +271,7 @@ exports.createAdmin = catchAsync(async (req, res, next) => {
 
   const { name } = req.body;
 
-  // membuat link token aktivasi
+  // membuat link token untuk ganti password
   const adminToken = crypto.randomBytes(20).toString('hex');
   const adminTokenExpires = Date.now() + 24 * 60 * 60 * 1000; // token valid selama 24 jam
 
@@ -286,47 +286,45 @@ exports.createAdmin = catchAsync(async (req, res, next) => {
   admin.active = true;
   admin.save({ validateBeforeSave: false });
 
-  console.log(adminToken);
+  // res.status(201).json({
+  //   status: 0,
+  //   msg: 'Success! Berhasil pembuatan akun admin',
+  //   data: {
+  //     adminId: admin.adminId,
+  //     name: admin.name,
+  //     emailAddress: admin.emailAddress,
+  //     role: admin.role,
+  //   },
+  // });
 
-  res.status(201).json({
-    status: 0,
-    msg: 'Success! Berhasil pembuatan akun admin',
-    data: {
-      adminId: admin.adminId,
-      name: admin.name,
-      emailAddress: admin.emailAddress,
-      role: admin.role,
-    },
-  });
+  try {
+    admin.active = true;
+    admin.save({ validateBeforeSave: false });
 
-  // try {
-  //   admin.active = true;
-  //   admin.save({ validateBeforeSave: false });
+    // send confirmation email
+    const url = `http://127.0.0.1:${process.env.PORT}/v1/ga/users/createPassword?token=${adminToken}`;
 
-  //   send confirmation email
-  //   const url = `http://127.0.0.1:${process.env.PORT}/v1/ga/users/createPassword?token=${adminToken}`;
+    await new Email(admin, url).sendWelcome();
 
-  //   await new Email(admin, url).sendWelcome();
-
-  //   res.status(201).json({
-  //     status: 0,
-  //     msg: 'Success! Berhasil pembuatan akun admin',
-  //     data: {
-  //       name: admin.name,
-  //       emailAddress: admin.emailAddress,
-  //       role: admin.role,
-  //     },
-  //   });
-  // } catch (err) {
-  //   admin.active = false;
-  //   await admin.save({ validateBeforeSave: false });
-  //   return next(
-  //     new AppError(
-  //       'Ada kesalahan yang terjadi saat mengirim e-mail, mohon dicoba lagi',
-  //       500
-  //     )
-  //   );
-  // }
+    res.status(201).json({
+      status: 0,
+      msg: 'Success! Berhasil pembuatan akun admin',
+      data: {
+        name: admin.name,
+        emailAddress: admin.emailAddress,
+        role: admin.role,
+      },
+    });
+  } catch (err) {
+    admin.active = false;
+    await admin.save({ validateBeforeSave: false });
+    return next(
+      new AppError(
+        'Ada kesalahan yang terjadi saat mengirim e-mail, mohon dicoba lagi',
+        500
+      )
+    );
+  }
 });
 
 exports.signInAdmin = catchAsync(async (req, res, next) => {
