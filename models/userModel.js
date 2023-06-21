@@ -47,7 +47,7 @@ const userSchema = new mongoose.Schema(
     otpExpiration: Date,
     profileImage: {
       type: String,
-      default: '/uploads/users/default.jpeg',
+      default: 'uploads/users/default.jpeg',
     },
     role: {
       type: String,
