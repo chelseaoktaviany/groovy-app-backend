@@ -47,13 +47,13 @@ const upload = multer({
 // upload user photo
 exports.uploadUserImage = upload.single('profileImage');
 
-const filterObj = (obj, ...allowedFields) => {
-  const newObj = {};
-  Object.keys(obj).forEach((el) => {
-    if (allowedFields.includes(el)) newObj[el] = obj[el];
-  });
-  return newObj;
-};
+// const filterObj = (obj, ...allowedFields) => {
+//   const newObj = {};
+//   Object.keys(obj).forEach((el) => {
+//     if (allowedFields.includes(el)) newObj[el] = obj[el];
+//   });
+//   return newObj;
+// };
 
 // memperolehkan semua user
 exports.getAllAdmins = factory.getAll(Admin, 'Berhasil mengakses data admin');
