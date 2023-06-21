@@ -51,7 +51,7 @@ const adminSchema = new mongoose.Schema({
   },
   profileImage: {
     type: String,
-    default: '/uploads/admins/default.jpeg',
+    default: 'uploads/admins/default.jpeg',
   },
 });
 
