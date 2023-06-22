@@ -185,6 +185,8 @@ exports.redeemVoucher = catchAsync(async (req, res, next) => {
     user.redeemedVouchers.push(redeemedVoucher);
     await user.save();
 
+    // send an email for voucher code (nanti)
+
     res.status(200).json({ status: 0, msg: 'Voucher saved successfully' });
   } catch (err) {
     console.err(err);
