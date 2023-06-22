@@ -5,13 +5,14 @@ const promoSchema = new mongoose.Schema({
     type: String,
     require: [true, 'Mohon isi judul promo'],
   },
-  promoDescription: {
+  promoContent: {
     type: String,
     require: [true, 'Mohon isi deskripsi promo'],
   },
   promoImage: {
     type: String,
     require: [true, 'Mohon isi gambar promo'],
+    default: 'uploads/promos/default.jpeg',
   },
 });
 
