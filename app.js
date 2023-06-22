@@ -170,6 +170,14 @@ app.use('/v1/ga/vouchers', voucherRouters);
 app.use('/v1/ga/posts', postRouters);
 app.use('/v1/ga/promos', promoRouters);
 
+// test api
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: 0,
+    msg: 'This API is working',
+  });
+});
+
 // jika endpoint tidak ditemukan
 app.all('*', (req, res, next) => {
   return next(
