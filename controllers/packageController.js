@@ -1,6 +1,4 @@
 const multer = require('multer');
-const sharp = require('sharp');
-
 const path = require('path');
 
 // models
@@ -74,13 +72,7 @@ exports.createPackage = catchAsync(async (req, res, next) => {
     'packageType'
   );
 
-  const packageImage = req.file.path.replace(/\\/g, '/');
-
-  const outputPath = path
-    .join('uploads', 'packages', `resized-${req.file.filename}`)
-    .replace(/\\/g, '/');
-
-  sharp(packageImage).resize({ width: 500, height: 500 }).toFile(outputPath);
+  const url = `${req.protocol}://${req.get('host')}/v1/ga`;
 
   if (filteredBody.packageType === 'Monthly') {
     const packageNextPayment = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
@@ -89,7 +81,7 @@ exports.createPackage = catchAsync(async (req, res, next) => {
       packageName: filteredBody.packageName,
       packageDescription: filteredBody.packageDescription,
       packagePrice: filteredBody.packagePrice,
-      packageImage: outputPath,
+      packageImage: `${url}/uploads/packages/${req.file.filename}`,
       packageType: filteredBody.packageType,
       packageNextPayment,
     });
@@ -106,7 +98,7 @@ exports.createPackage = catchAsync(async (req, res, next) => {
       packageName: filteredBody.packageName,
       packageDescription: filteredBody.packageDescription,
       packagePrice: filteredBody.packagePrice,
-      packageImage: outputPath,
+      packageImage: `${url}/uploads/${req.file.filename}`,
       packageType: filteredBody.packageType,
       packageNextPayment,
     });
