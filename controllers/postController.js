@@ -1,6 +1,4 @@
 const multer = require('multer');
-const sharp = require('sharp');
-
 const path = require('path');
 
 const catchAsync = require('../utils/catchAsync');
@@ -65,18 +63,12 @@ exports.getPost = factory.getOne(
 exports.createPost = catchAsync(async (req, res, next) => {
   const filteredBody = filterObj(req.body, 'postTitle', 'postDescription');
 
-  const postImage = req.file.path.replace(/\\/g, '/');
-
-  const outputPath = path
-    .join('uploads', 'posts', `resized-${req.file.filename}`)
-    .replace(/\\/g, '/');
-
-  sharp(postImage).resize({ width: 500, height: 500 }).toFile(outputPath);
+  const url = `${req.protocol}://${req.get('host')}/v1/ga`;
 
   const newPost = await Post.create({
     postTitle: filteredBody.postTitle,
     postDescription: filteredBody.postDescription,
-    postImage: outputPath,
+    postImage: `${url}/uploads/posts/${req.file.filename}`,
   });
 
   res.status(201).json({
@@ -91,19 +83,14 @@ exports.updatePost = catchAsync(async (req, res, next) => {
 
   const filteredBody = filterObj(req.body, 'postTitle', 'postDescription');
 
-  const postImage = req.file.path.replace(/\\/g, '/');
-  const outputPath = path
-    .join('uploads', 'posts', `resized-${req.file.filename}`)
-    .replace(/\\/g, '/');
-
-  sharp(postImage).resize({ width: 500, height: 500 }).toFile(outputPath);
+  const url = `${req.protocol}://${req.get('host')}`;
 
   const post = await Post.findByIdAndUpdate(
     id,
     {
       postTitle: filteredBody.postTitle,
       postDescription: filteredBody.postDescription,
-      postImage: outputPath,
+      postImage: `${url}/uploads/${req.file.filename}`,
     },
     { new: true, runValidators: true }
   );
