@@ -1,6 +1,4 @@
 const multer = require('multer');
-const sharp = require('sharp');
-
 const path = require('path');
 
 const catchAsync = require('../utils/catchAsync');
@@ -63,20 +61,14 @@ exports.getPromo = factory.getOne(
 );
 
 exports.createPromo = catchAsync(async (req, res, next) => {
-  const filteredBody = filterObj(req.body, 'promoTitle', 'promoDescription');
+  const filteredBody = filterObj(req.body, 'promoTitle', 'promoContent');
 
-  const promoImage = req.file.path.replace(/\\/g, '/');
-
-  const outputPath = path
-    .join('uploads', 'promos', `resized-${req.file.filename}`)
-    .replace(/\\/g, '/');
-
-  sharp(promoImage).resize({ width: 500, height: 500 }).toFile(outputPath);
+  const url = `${req.protocol}://${req.get('host')}/v1/ga`;
 
   const newPromo = await Promo.create({
     promoTitle: filteredBody.promoTitle,
-    promoDescription: filteredBody.promoDescription,
-    promoImage: outputPath,
+    promoContent: filteredBody.promoContent,
+    promoImage: `${url}/uploads/promos/${req.file.filename}`,
   });
 
   res.status(201).json({
@@ -89,21 +81,16 @@ exports.createPromo = catchAsync(async (req, res, next) => {
 exports.updatePromo = catchAsync(async (req, res, next) => {
   const id = req.params.id;
 
-  const filteredBody = filterObj(req.body, 'promoTitle', 'promoDescription');
+  const filteredBody = filterObj(req.body, 'promoTitle', 'promoContent');
 
-  const promoImage = req.file.path.replace(/\\/g, '/');
-  const outputPath = path
-    .join('uploads', 'promos', `resized-${req.file.filename}`)
-    .replace(/\\/g, '/');
-
-  sharp(promoImage).resize({ width: 500, height: 500 }).toFile(outputPath);
+  const url = `${req.protocol}://${req.get('host')}`;
 
   const promo = await Promo.findByIdAndUpdate(
     id,
     {
-      promoTitle: filteredBody.voucherTitle,
-      promoDescription: filteredBody.voucherDescription,
-      promoImage: outputPath,
+      promoTitle: filteredBody.promoTitle,
+      promoContent: filteredBody.promoContent,
+      promoImage: `${url}/uploads/${req.file.filename}`,
     },
     { new: true, runValidators: true }
   );
