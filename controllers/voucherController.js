@@ -1,6 +1,4 @@
 const multer = require('multer');
-const sharp = require('sharp');
-
 const path = require('path');
 
 const catchAsync = require('../utils/catchAsync');
@@ -72,13 +70,7 @@ exports.createVoucher = catchAsync(async (req, res, next) => {
     'voucherPrice'
   );
 
-  const voucherImage = req.file.path.replace(/\\/g, '/');
-
-  const outputPath = path
-    .join('uploads', 'vouchers', `resized-${req.file.filename}`)
-    .replace(/\\/g, '/');
-
-  sharp(voucherImage).resize({ width: 500, height: 500 }).toFile(outputPath);
+  const url = `${req.protocol}://${req.get('host')}`;
 
   const validUntilDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
@@ -87,7 +79,7 @@ exports.createVoucher = catchAsync(async (req, res, next) => {
     voucherType: filteredBody.voucherType,
     voucherDescription: filteredBody.voucherDescription,
     voucherPrice: filteredBody.voucherPrice,
-    voucherImage: outputPath,
+    voucherImage: `${url}/uploads/${req.file.filename}`,
     validUntilDate: validUntilDate,
   });
 
@@ -109,12 +101,7 @@ exports.updateVoucher = catchAsync(async (req, res, next) => {
     'voucherPrice'
   );
 
-  const voucherImage = req.file.path.replace(/\\/g, '/');
-  const outputPath = path
-    .join('uploads', 'vouchers', `resized-${req.file.filename}`)
-    .replace(/\\/g, '/');
-
-  sharp(voucherImage).resize({ width: 500, height: 500 }).toFile(outputPath);
+  const url = `${req.protocol}://${req.get('host')}/v1/ga`;
 
   const voucher = await Voucher.findByIdAndUpdate(
     id,
@@ -123,7 +110,7 @@ exports.updateVoucher = catchAsync(async (req, res, next) => {
       voucherType: filteredBody.voucherType,
       voucherDescription: filteredBody.voucherDescription,
       voucherPrice: filteredBody.voucherPrice,
-      voucherImage: outputPath,
+      voucherImage: `${url}/uploads/${req.file.filename}`,
     },
     { new: true, runValidators: true }
   );
