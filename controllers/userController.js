@@ -1,6 +1,4 @@
 const multer = require('multer');
-const sharp = require('sharp');
-
 const path = require('path');
 
 // models
@@ -80,12 +78,7 @@ exports.updateUserProfile = catchAsync(async (req, res, next) => {
     'emailAddress'
   );
 
-  const profileImage = req.file.path.replace(/\\/g, '/');
-  const outputPath = path
-    .join('uploads', 'users', `resized-${req.file.filename}`)
-    .replace(/\\/g, '/');
-
-  sharp(profileImage).resize({ width: 500, height: 500 }).toFile(outputPath);
+  const url = `${req.protocol}://${req.get('host')}/v1/ga`;
 
   const user = await User.findByIdAndUpdate(
     id,
@@ -94,7 +87,7 @@ exports.updateUserProfile = catchAsync(async (req, res, next) => {
       lastName: filteredBody.lastName,
       nomorHP: filteredBody.nomorHP,
       emailAddress: filteredBody.emailAddress,
-      profileImage: outputPath,
+      profileImage: `${url}/uploads/users/${req.file.filename}`,
     },
     { new: true, runValidators: true }
   );
