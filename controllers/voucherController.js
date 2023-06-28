@@ -70,7 +70,7 @@ exports.createVoucher = catchAsync(async (req, res, next) => {
     'voucherPrice'
   );
 
-  const url = `${req.protocol}://${req.get('host')}`;
+  const url = `${req.protocol}://${req.get('host')}/v1/ga`;
 
   const validUntilDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
@@ -79,7 +79,7 @@ exports.createVoucher = catchAsync(async (req, res, next) => {
     voucherType: filteredBody.voucherType,
     voucherDescription: filteredBody.voucherDescription,
     voucherPrice: filteredBody.voucherPrice,
-    voucherImage: `${url}/uploads/${req.file.filename}`,
+    voucherImage: `${url}/uploads/vouchers/${req.file.filename}`,
     validUntilDate: validUntilDate,
   });
 
@@ -110,7 +110,7 @@ exports.updateVoucher = catchAsync(async (req, res, next) => {
       voucherType: filteredBody.voucherType,
       voucherDescription: filteredBody.voucherDescription,
       voucherPrice: filteredBody.voucherPrice,
-      voucherImage: `${url}/uploads/${req.file.filename}`,
+      voucherImage: `${url}/uploads/vouchers/${req.file.filename}`,
     },
     { new: true, runValidators: true }
   );
