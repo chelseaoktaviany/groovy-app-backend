@@ -32,6 +32,7 @@ const faqRouters = require('./routes/faqRouters');
 const voucherRouters = require('./routes/voucherRouters');
 const postRouters = require('./routes/postRouters');
 const promoRouters = require('./routes/promoRouters');
+const pointRouters = require('./routes/pointRouters');
 
 // trusting proxy
 app.enable('trust proxy');
@@ -169,6 +170,7 @@ app.use('/v1/ga/faqs', faqRouters);
 app.use('/v1/ga/vouchers', voucherRouters);
 app.use('/v1/ga/posts', postRouters);
 app.use('/v1/ga/promos', promoRouters);
+app.use('/v1/ga/points', pointRouters);
 
 // test api
 app.get('/', (req, res) => {
