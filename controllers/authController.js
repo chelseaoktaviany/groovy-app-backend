@@ -88,6 +88,8 @@ exports.signUp = catchAsync(async (req, res, next) => {
     // melakukan aktif dan mengirim OTP
     newUser.otp = await generateAndSaveOtp(newUser);
 
+    console.log(newUser.otp);
+
     newUser.active = true;
     newUser.activeExpiredByDate = new Date(
       Date.now() + 60 * 60 * 24 * 30 * 1000
