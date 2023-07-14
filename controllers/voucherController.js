@@ -104,7 +104,7 @@ exports.updateVoucher = catchAsync(async (req, res, next) => {
   const url = `${req.protocol}://${req.get('host')}/v1/ga`;
 
   const voucher = await Voucher.findByIdAndUpdate(
-    id,
+    { _id: id },
     {
       voucherTitle: filteredBody.voucherTitle,
       voucherType: filteredBody.voucherType,
