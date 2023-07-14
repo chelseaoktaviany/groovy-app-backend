@@ -112,10 +112,63 @@ exports.createPackage = catchAsync(async (req, res, next) => {
 });
 
 // edit package
-exports.updatePackage = factory.updateOne(
-  Package,
-  'Berhasil mengubah data paket internet'
-);
+exports.updatePackage = catchAsync(async (req, res, next) => {
+  const id = req.params.id;
+
+  const filteredBody = filterObj(
+    req.body,
+    'packageName',
+    'packageDescription',
+    'packagePrice',
+    'packageType'
+  );
+
+  const url = `${req.protocol}://${req.get('host')}/v1/ga`;
+
+  if (filteredBody.packageType === 'Monthly') {
+    const packageNextPayment = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+    const editedPackage = await Package.findByIdAndUpdate(
+      { _id: id },
+      {
+        packageName: filteredBody.packageName,
+        packageDescription: filteredBody.packageDescription,
+        packagePrice: filteredBody.packagePrice,
+        packageImage: `${url}/uploads/packages/${req.file.filename}`,
+        packageType: filteredBody.packageType,
+        packageNextPayment,
+      },
+      { new: true, runValidators: false }
+    );
+
+    res.status(201).json({
+      status: 0,
+      msg: 'Berhasil menambahkan data paket internet',
+      data: editedPackage,
+    });
+  } else if (filteredBody.packageType === 'Yearly') {
+    const packageNextPayment = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+
+    const editedPackage = await Package.findByIdAndUpdate(
+      { id: id },
+      {
+        packageName: filteredBody.packageName,
+        packageDescription: filteredBody.packageDescription,
+        packagePrice: filteredBody.packagePrice,
+        packageImage: `${url}/uploads/${req.file.filename}`,
+        packageType: filteredBody.packageType,
+        packageNextPayment,
+      },
+      { new: true, runValidators: false }
+    );
+
+    res.status(201).json({
+      status: 0,
+      msg: 'Berhasil menambahkan data paket internet',
+      data: editedPackage,
+    });
+  }
+});
 
 // delete package
 exports.deletePackage = factory.deleteOne(
