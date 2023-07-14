@@ -150,7 +150,7 @@ exports.updatePackage = catchAsync(async (req, res, next) => {
     const packageNextPayment = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
 
     const editedPackage = await Package.findByIdAndUpdate(
-      { id: id },
+      { _id: id },
       {
         packageName: filteredBody.packageName,
         packageDescription: filteredBody.packageDescription,
@@ -159,7 +159,7 @@ exports.updatePackage = catchAsync(async (req, res, next) => {
         packageType: filteredBody.packageType,
         packageNextPayment,
       },
-      { new: true, runValidators: false }
+      { new: true, runValidators: true }
     );
 
     res.status(201).json({
