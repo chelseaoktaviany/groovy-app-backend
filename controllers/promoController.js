@@ -86,7 +86,7 @@ exports.updatePromo = catchAsync(async (req, res, next) => {
   const url = `${req.protocol}://${req.get('host')}`;
 
   const promo = await Promo.findByIdAndUpdate(
-    id,
+    { _id: id },
     {
       promoTitle: filteredBody.promoTitle,
       promoContent: filteredBody.promoContent,
