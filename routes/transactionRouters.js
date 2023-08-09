@@ -7,15 +7,16 @@ const router = express.Router();
 
 router.use(authController.protect);
 
+router.post('/checkout/:packageId', transactionController.createEWalletCharge);
+
 router.post(
-  '/checkout/:packageId',
-  transactionController.createPurchaseTransaction
+  '/verify/:packageId',
+  transactionController.verifyPaymentTransaction
 );
 
 router.use(authController.restrictTo('admin'));
 
 router.route('/').get(transactionController.getAllTransactions);
-//   .post(transactionController.createTransaction);
 
 router
   .route('/:id')
