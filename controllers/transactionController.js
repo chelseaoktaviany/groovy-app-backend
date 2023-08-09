@@ -1,4 +1,3 @@
-const Xendit = require('xendit-node');
 const { v4: uuidv4 } = require('uuid');
 
 const Package = require('../models/packageModel');
@@ -8,8 +7,6 @@ const Transaction = require('../models/transactionModel');
 const catchAsync = require('../utils/catchAsync');
 const factory = require('./handleFactory');
 const AppError = require('../utils/appError');
-
-const xendit = new Xendit({ secretKey: process.env.XENDIT_API_KEY });
 
 exports.checkoutProduct = catchAsync(async (req, res, next) => {
   const { packageId } = req.params;
@@ -68,7 +65,7 @@ exports.checkoutProduct = catchAsync(async (req, res, next) => {
     });
 });
 
-exports.createPurchaseTransaction = catchAsync(async (req, res, next) => {
+exports.createEWalletCharge = catchAsync(async (req, res, next) => {
   const { packageId } = req.params;
 
   // get user
@@ -85,24 +82,34 @@ exports.createPurchaseTransaction = catchAsync(async (req, res, next) => {
     return next(new AppError('Package not found', 404));
   }
 
+  const x = new require('xendit-node')({
+    secretKey: process.env.XENDIT_API_KEY,
+  });
+
   const transactionId = uuidv4();
 
-  const { Payout } = xendit;
-  const payoutSpecificOptions = {};
-  const p = new Payout(payoutSpecificOptions);
+  const { EWallet } = x;
+  const ewalletSpecificOptions = {};
+  const ew = new EWallet(ewalletSpecificOptions);
 
-  const paymentDetails = {
-    externalID: transactionId,
+  const resp = await ew.createEWalletCharge({
+    referenceID: transactionId,
     amount: existedPackage.packagePrice,
     currency: 'IDR',
-    email: user.emailAddress,
-    description: `Payment for ${existedPackage.packageName}`,
-  };
-
-  // create an invoice
-  p.createPayout(paymentDetails).then(({ id }) => {
-    console.log(`Invoice created with id: ${id}`);
+    checkoutMethod: 'TOKENIZED_PAYMENT',
+    channelCode: ['ID_SHOPEEPAY', 'ID_OVO', 'ID_DANA', 'ID_LINKAJA'],
+    channelProperties: {
+      phone_number: user.nomorHP,
+      successRedirectURL: 'https://dashboard.xendit.co/register/1',
+      failureRedirectURL: '',
+      redeem_points: 'REDEEM_NONE',
+    },
+    metadata: {
+      branch_code: 'tree_branch',
+    },
   });
+
+  console.log(resp);
 
   const transaction = new Transaction({
     transactionId,
@@ -124,6 +131,8 @@ exports.createPurchaseTransaction = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.verifyPaymentTransaction = catchAsync(async (req, res, next) => {});
+
 exports.getAllTransactions = factory.getAll(
   Transaction,
   'Berhasil mengakses data transaksi'
@@ -134,11 +143,6 @@ exports.getTransaction = factory.getOne(
   { path: '_id' },
   'Berhasil mengakses data transaksi'
 );
-
-// exports.createTransaction = factory.createOne(
-//   Transaction,
-//   'You have successfully made your transaction'
-// );
 
 exports.updateTransaction = factory.updateOne(
   Transaction,
