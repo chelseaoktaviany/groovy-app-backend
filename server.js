@@ -3,6 +3,8 @@ const dotenv = require('dotenv');
 const http = require('http');
 const socketIo = require('socket.io');
 
+const CustomerServiceUser = require('./utils/customerServiceUser');
+
 process.on('uncaughtException', (err) => {
   console.log('Uncaught exception! Shutting down...');
   console.log(err.name, err.message);
@@ -44,18 +46,30 @@ let messages = [];
 io.on('connection', (socket) => {
   console.log(`${socket.id} has connected.`);
 
-  // chat message
-  socket.on('newMessage', ({ user, time, content }) => {
-    messages.unshift({ user, time, content });
+  if (socket.handshake.query.customerService) {
+    const customerServiceUser = new CustomerServiceUser(socket);
 
-    io.emit('newMessage', messages);
-    console.log(messages);
-  });
+    customerServiceUser.setOnlineStatus(true);
 
-  // an user is disconnected
-  socket.on('disconnect', () => {
-    console.log('user disconnected');
-  });
+    socket.on('disconnect', () => {
+      console.log('Customer Service disconnected:', socket.id);
+      customerServiceUser.setOnlineStatus(false);
+    });
+  } else {
+    // chat message
+    socket.on('newMessage', (data) => {
+      io.emit('newMessage', {
+        content: data.message,
+        isCustomerService: false,
+      });
+      console.log(data);
+    });
+
+    // an user is disconnected
+    socket.on('disconnect', () => {
+      console.log('user disconnected');
+    });
+  }
 });
 
 // server
