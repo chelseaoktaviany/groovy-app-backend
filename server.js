@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const http = require('http');
+const socketIo = require('socket.io');
 
 process.on('uncaughtException', (err) => {
   console.log('Uncaught exception! Shutting down...');
@@ -13,6 +15,9 @@ dotenv.config({ path: './config.env' });
 
 // menggunakan app.js
 const app = require('./app');
+
+const server = http.createServer(app);
+const io = socketIo(server);
 
 // menyambungkan ke mongoose
 const DB = process.env.DATABASE.replace(
@@ -34,9 +39,28 @@ mongoose
     throw err;
   });
 
+let messages = [];
+
+io.on('connection', (socket) => {
+  console.log(`${socket.id} has connected.`);
+
+  // chat message
+  socket.on('newMessage', ({ user, time, content }) => {
+    messages.unshift({ user, time, content });
+
+    io.emit('newMessage', messages);
+    console.log(messages);
+  });
+
+  // an user is disconnected
+  socket.on('disconnect', () => {
+    console.log('user disconnected');
+  });
+});
+
 // server
 const port = process.env.PORT || 5000;
-const server = app.listen(port, () => {
+server.listen(port, () => {
   console.log(`The server is listening on ${port}`);
 });
 

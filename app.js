@@ -1,6 +1,9 @@
 // packages
 const path = require('path');
 const express = require('express');
+const app = express();
+const cors = require('cors');
+
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
@@ -10,12 +13,8 @@ const hpp = require('hpp');
 const csp = require('express-csp');
 const cookieParser = require('cookie-parser');
 const compression = require('compression');
-const cors = require('cors');
 
 require('dotenv').config({ path: './config.env' });
-
-// memulai aplikasi express
-const app = express();
 
 // untuk router & error handling (NANTI)
 const AppError = require('./utils/appError');
