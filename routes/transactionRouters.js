@@ -7,7 +7,10 @@ const router = express.Router();
 
 router.use(authController.protect);
 
-router.post('/checkout/:packageId', transactionController.createEWalletCharge);
+router.post(
+  '/process-transaction/:packageId',
+  transactionController.checkoutProduct
+);
 
 router.post(
   '/verify/:packageId',
