@@ -36,6 +36,10 @@ const transactionSchema = new mongoose.Schema({
     type: Date,
     default: Date.now(),
   },
+  responseMidtrans: {
+    type: String,
+    required: [true, 'Response midtrans is required'],
+  },
 });
 
 transactionSchema.pre(/^find/, function (next) {
