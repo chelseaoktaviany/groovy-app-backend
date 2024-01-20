@@ -14,7 +14,9 @@ const csp = require('express-csp');
 const cookieParser = require('cookie-parser');
 const compression = require('compression');
 
-require('dotenv').config({ path: './config.env' });
+// env
+require('dotenv').config({ path: `./.env.${process.env.NODE_ENV}` });
+console.log(process.env.NODE_ENV);
 
 // untuk router & error handling (NANTI)
 const AppError = require('./utils/appError');
@@ -29,7 +31,6 @@ const installationRouters = require('./routes/installationRouters');
 const transactionRouters = require('./routes/transactionRouters');
 const faqRouters = require('./routes/faqRouters');
 const voucherRouters = require('./routes/voucherRouters');
-const postRouters = require('./routes/postRouters');
 const promoRouters = require('./routes/promoRouters');
 const pointRouters = require('./routes/pointRouters');
 
@@ -161,7 +162,6 @@ app.use('/v1/ga/installations', installationRouters);
 app.use('/v1/ga/transactions', transactionRouters);
 app.use('/v1/ga/faqs', faqRouters);
 app.use('/v1/ga/vouchers', voucherRouters);
-app.use('/v1/ga/posts', postRouters);
 app.use('/v1/ga/promos', promoRouters);
 app.use('/v1/ga/points', pointRouters);
 
