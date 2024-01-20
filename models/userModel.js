@@ -66,25 +66,11 @@ const userSchema = new mongoose.Schema(
     },
     paymentStatus: {
       type: String,
-      enum: ['done', 'process'],
-      default: undefined,
+      enum: ['done', 'process', 'unpaid'],
+      default: 'unpaid',
     },
-    purchasedPackage: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Package',
-    },
-    redeemedVouchers: [
-      {
-        voucher: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: 'Voucher',
-        },
-        redeemedAt: {
-          type: Date,
-          default: Date.now,
-        },
-      },
-    ],
+    voucherCode: { type: String, index: true },
+    voucherCodeExpiration: Date,
   },
   {
     toJSON: { virtuals: true },
@@ -105,21 +91,21 @@ userSchema.pre('save', function (next) {
   next();
 });
 
-userSchema.pre(/^find/, function (next) {
-  this.populate('purchasedPackage').populate({
-    path: 'purchasedPackage',
-    select:
-      'packageName packageDescription packagePrice packageImage packageType packageNextPayment',
-  });
+// userSchema.pre(/^find/, function (next) {
+//   this.populate('purchasedPackage').populate({
+//     path: 'purchasedPackage',
+//     select:
+//       'packageName packageDescription packagePrice packageImage packageType packageNextPayment',
+//   });
 
-  this.populate('redeemedVouchers').populate({
-    path: 'redeemedVouchers',
-    select:
-      'voucherName, voucherDescription voucherPrice voucherImage validUntilDate',
-  });
+//   this.populate('redeemedVouchers').populate({
+//     path: 'redeemedVouchers',
+//     select:
+//       'voucherName, voucherDescription voucherPrice voucherImage validUntilDate',
+//   });
 
-  next();
-});
+//   next();
+// });
 
 const User = mongoose.model('User', userSchema);
 

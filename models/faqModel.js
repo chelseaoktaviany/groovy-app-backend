@@ -4,11 +4,11 @@ const faqSchema = new mongoose.Schema(
   {
     faqTitle: {
       type: String,
-      required: [true, 'Mohon isi judul QnA'],
+      required: [true, 'Mohon isi judul FAQ'],
     },
     faqContent: {
       type: String,
-      required: [true, 'Mohon isi pertanyaan'],
+      required: [true, 'Mohon isi deskripsi untuk FAQ'],
     },
     isDisabled: {
       type: Boolean,

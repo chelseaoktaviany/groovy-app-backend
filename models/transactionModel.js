@@ -36,9 +36,10 @@ const transactionSchema = new mongoose.Schema({
     type: Date,
     default: Date.now(),
   },
-  responseMidtrans: {
+  nextPaymentDate: Date,
+  response: {
     type: String,
-    required: [true, 'Response midtrans is required'],
+    required: [true, 'Response data harus ada'],
   },
 });
 

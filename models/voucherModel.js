@@ -15,27 +15,26 @@ const voucherSchema = mongoose.Schema(
       type: String,
       require: [true, 'Mohon isi deskripsi voucher'],
     },
-    voucherPrice: {
-      type: String,
-      require: [true, 'Mohon isi harga voucher'],
+    voucherPoint: {
+      type: Number,
+      require: [true, 'Mohon isi poin voucher'],
     },
     voucherImage: {
       type: String,
       require: [true, 'Mohon isi gambar voucher'],
     },
     validUntilDate: Date,
-    redeemedBy: {
-      type: mongoose.Schema.Types.ObjectId,
+    redeemedByUser: {
+      type: mongoose.Schema.ObjectId,
       ref: 'User',
-      default: null,
     },
   },
   { toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
 
 voucherSchema.pre(/^find/, function (next) {
-  this.populate('redeemedBy').populate({
-    path: 'redeemedBy',
+  this.populate('redeemedByUser').populate({
+    path: 'redeemedByUser',
     select: 'firstName lastName emailAddress nomorHP profileImage',
   });
 

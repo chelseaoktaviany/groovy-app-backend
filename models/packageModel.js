@@ -20,8 +20,7 @@ const packageSchema = new mongoose.Schema(
       enum: ['Yearly', 'Monthly'],
       required: [true, 'Mohon isi tipe paket internet'],
     },
-    packageNextPayment: Date,
-    purchasedBy: {
+    purchasedByUser: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       default: null,
@@ -35,8 +34,8 @@ const packageSchema = new mongoose.Schema(
 );
 
 packageSchema.pre(/^find/, function (next) {
-  this.populate('purchasedBy').populate({
-    path: 'purchasedBy',
+  this.populate('purchasedByUser').populate({
+    path: 'purchasedByUser',
     select: 'firstName lastName emailAddress nomorHP profileImage',
   });
 
