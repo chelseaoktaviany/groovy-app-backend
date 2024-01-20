@@ -3,6 +3,8 @@ const path = require('path');
 
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const Email = require('../utils/email');
+const { generateVoucherCode } = require('../utils/voucherCodeGenerator');
 
 const factory = require('./handleFactory');
 
@@ -50,6 +52,14 @@ const filterObj = (obj, ...allowedFields) => {
   return newObj;
 };
 
+const generateAndSaveCode = async (user) => {
+  const voucherCode = generateVoucherCode(4);
+  user.voucherCode = voucherCode;
+  user.voucherCodeExpiration = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // berlaku selama 1 bulan??
+
+  return voucherCode;
+};
+
 exports.getAllVouchers = factory.getAll(
   Voucher,
   'Berhasil memperoleh semua data voucher'
@@ -67,7 +77,7 @@ exports.createVoucher = catchAsync(async (req, res, next) => {
     'voucherTitle',
     'voucherType',
     'voucherDescription',
-    'voucherPrice'
+    'voucherPoint'
   );
 
   const url = `${req.protocol}://${req.get('host')}/v1/ga`;
@@ -78,7 +88,7 @@ exports.createVoucher = catchAsync(async (req, res, next) => {
     voucherTitle: filteredBody.voucherTitle,
     voucherType: filteredBody.voucherType,
     voucherDescription: filteredBody.voucherDescription,
-    voucherPrice: filteredBody.voucherPrice,
+    voucherPoint: filteredBody.voucherPoint,
     voucherImage: `${url}/uploads/vouchers/${req.file.filename}`,
     validUntilDate: validUntilDate,
   });
@@ -98,7 +108,7 @@ exports.updateVoucher = catchAsync(async (req, res, next) => {
     'voucherTitle',
     'voucherType',
     'voucherDescription',
-    'voucherPrice'
+    'voucherPoint'
   );
 
   const url = `${req.protocol}://${req.get('host')}/v1/ga`;
@@ -109,7 +119,7 @@ exports.updateVoucher = catchAsync(async (req, res, next) => {
       voucherTitle: filteredBody.voucherTitle,
       voucherType: filteredBody.voucherType,
       voucherDescription: filteredBody.voucherDescription,
-      voucherPrice: filteredBody.voucherPrice,
+      voucherPoint: filteredBody.voucherPoint,
       voucherImage: `${url}/uploads/vouchers/${req.file.filename}`,
     },
     { new: true, runValidators: true }
@@ -135,9 +145,9 @@ exports.redeemVoucher = catchAsync(async (req, res, next) => {
   const userId = req.user.id;
 
   try {
-    const user = await User.findById(userId);
+    const existedUser = await User.findById(userId);
 
-    if (!user) {
+    if (!existedUser) {
       return next(new AppError('User not found', 404));
     }
 
@@ -147,36 +157,34 @@ exports.redeemVoucher = catchAsync(async (req, res, next) => {
       return next(new AppError('Voucher not found', 404));
     }
 
-    if (user.point < voucher.voucherPrice) {
+    if (existedUser.point < voucher.voucherPoint) {
       return next(new AppError("You don't have enough point to redeem", 400));
     }
 
-    user.point -= voucher.packagePrice;
-    await user.save();
-
-    // redeem voucher
-    voucher.redeemedBy = user._id;
-    await voucher.save();
+    existedUser.point -= voucher.voucherPoint;
 
     // check if the voucher has already been redeemed
-    if (voucher.redeemedBy) {
+    if (voucher.redeemedByUser) {
       return next(new AppError('Voucher has already been redeemed', 400));
     }
 
-    // add the redeemed voucher to the user's redeemedVouchers array
-    const redeemedVoucher = {
-      voucher: voucher._id,
-      redeemedAt: new Date(),
-    };
+    // redeem voucher
+    voucher.redeemedByUser = existedUser._id;
 
-    user.redeemedVouchers.push(redeemedVoucher);
-    await user.save();
+    await voucher.save({ validateBeforeSave: false });
+
+    existedUser.voucherCode = generateAndSaveCode(existedUser);
+    console.log(existedUser.voucherCode);
 
     // send an email for voucher code (nanti)
+    await existedUser.save({ validateBeforeSave: false });
+    await new Email(existedUser).sendVoucherCode();
 
-    res.status(200).json({ status: 0, msg: 'Voucher saved successfully' });
+    res
+      .status(200)
+      .json({ status: 0, msg: 'Redeemed voucher successfully', data: voucher });
   } catch (err) {
-    console.err(err);
+    console.log(err);
 
     return next(
       new AppError('An error occurred while redeeming the voucher', 500)

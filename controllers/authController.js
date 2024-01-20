@@ -304,7 +304,7 @@ exports.createAdmin = catchAsync(async (req, res, next) => {
     admin.save({ validateBeforeSave: false });
 
     // send confirmation email
-    const url = `http://127.0.0.1:${process.env.PORT}/v1/ga/users/createPassword?token=${adminToken}`;
+    const url = `http://127.0.0.1:${process.env.PORT}/v1/ga/admins/createPassword?token=${adminToken}`;
 
     await new Email(admin, url).sendWelcome();
 

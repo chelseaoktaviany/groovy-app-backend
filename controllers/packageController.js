@@ -75,15 +75,12 @@ exports.createPackage = catchAsync(async (req, res, next) => {
   const url = `${req.protocol}://${req.get('host')}/v1/ga`;
 
   if (filteredBody.packageType === 'Monthly') {
-    const packageNextPayment = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-
     const newPackage = await Package.create({
       packageName: filteredBody.packageName,
       packageDescription: filteredBody.packageDescription,
       packagePrice: filteredBody.packagePrice,
       packageImage: `${url}/uploads/packages/${req.file.filename}`,
       packageType: filteredBody.packageType,
-      packageNextPayment,
     });
 
     res.status(201).json({
@@ -92,15 +89,12 @@ exports.createPackage = catchAsync(async (req, res, next) => {
       data: newPackage,
     });
   } else if (filteredBody.packageType === 'Yearly') {
-    const packageNextPayment = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
-
     const newPackage = await Package.create({
       packageName: filteredBody.packageName,
       packageDescription: filteredBody.packageDescription,
       packagePrice: filteredBody.packagePrice,
       packageImage: `${url}/uploads/${req.file.filename}`,
       packageType: filteredBody.packageType,
-      packageNextPayment,
     });
 
     res.status(201).json({
@@ -128,6 +122,8 @@ exports.updatePackage = catchAsync(async (req, res, next) => {
   if (filteredBody.packageType === 'Monthly') {
     const packageNextPayment = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
+    console.log(packageNextPayment);
+
     const editedPackage = await Package.findByIdAndUpdate(
       { _id: id },
       {
@@ -148,6 +144,8 @@ exports.updatePackage = catchAsync(async (req, res, next) => {
     });
   } else if (filteredBody.packageType === 'Yearly') {
     const packageNextPayment = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+
+    console.log(packageNextPayment);
 
     const editedPackage = await Package.findByIdAndUpdate(
       { _id: id },

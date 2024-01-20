@@ -141,6 +141,12 @@ exports.updateUserPoint = catchAsync(async (req, res, next) => {
   });
 });
 
+// delete an user
+exports.deleteUser = factory.deleteOne(
+  User,
+  'Berhasil menghapus data pengguna'
+);
+
 // get user's purchased package
 exports.getPurchasedPackageByUser = catchAsync(async (req, res, next) => {
   const id = req.user.id;
