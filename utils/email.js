@@ -7,11 +7,9 @@ module.exports = class Email {
     this.to = user.emailAddress;
     this.firstName = user.firstName;
     this.otp = user.otp;
+    this.voucherCode = user.voucherCode;
     this.url = url;
-    this.from =
-      process.env.NODE_ENV === 'production'
-        ? `admin <${process.env.EMAIL_FROM_PROD}>`
-        : `admin <${process.env.EMAIL_FROM_DEV}>`;
+    this.from = `admin <${process.env.EMAIL_FROM}>`;
   }
 
   newTransport() {
@@ -29,13 +27,13 @@ module.exports = class Email {
 
     // dev
     return nodemailer.createTransport({
-      host: process.env.EMAIL_HOST_DEV,
-      port: process.env.EMAIL_PORT_DEV,
+      host: process.env.EMAIL_HOST,
+      port: process.env.EMAIL_PORT,
       secure: false,
       logger: true,
       auth: {
-        user: process.env.EMAIL_USERNAME_DEV,
-        pass: process.env.EMAIL_PASSWORD_DEV,
+        user: process.env.EMAIL_USERNAME,
+        pass: process.env.EMAIL_PASSWORD,
       },
     });
   }
@@ -47,6 +45,7 @@ module.exports = class Email {
       firstName: this.firstName,
       url: this.url,
       otp: this.otp,
+      voucherCode: this.voucherCode,
       subject,
     });
 
@@ -74,5 +73,10 @@ module.exports = class Email {
       'sendOTP',
       'Verifikasi OTP Anda (Hanya berlaku selama 5 menit)'
     );
+  }
+
+  // untuk kode voucher
+  async sendVoucherCode() {
+    await this.send('sendVoucherCode', 'Kode Voucher Anda');
   }
 };
