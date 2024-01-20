@@ -1,8 +1,2 @@
-# environment variable
-*.env
-
-# node modules
 node_modules/
-
-# cache
-.cache/
+.env.*
