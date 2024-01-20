@@ -7,15 +7,9 @@ const router = express.Router();
 
 router.use(authController.protect);
 
-router.post(
-  '/process-transaction/:packageId',
-  transactionController.checkoutProduct
-);
+router.post('/checkout/:packageId', transactionController.checkoutSubscription);
 
-router.post(
-  '/verify/:packageId',
-  transactionController.verifyPaymentTransaction
-);
+router.post('/cancel', transactionController.cancelSubscription);
 
 router.use(authController.restrictTo('admin'));
 

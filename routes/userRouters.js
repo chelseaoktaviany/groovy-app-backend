@@ -48,7 +48,8 @@ router.route('/').get(userController.getAllUsers);
 router
   .route('/:id')
   .get(userController.getUser)
-  .patch(userController.updateUserStatus);
+  .patch(userController.updateUserStatus)
+  .delete(userController.deleteUser);
 
 // push user point
 router.route('/:id/point').patch(userController.updateUserPoint);
