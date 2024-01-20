@@ -5,9 +5,8 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js",
-    "start:dev": "nodemon server.js",
-    "start:prod": "SET NODE_ENV=production&& nodemon server.js"
+    "start:dev": "dotenv -c development -- nodemon server.js",
+    "start:prod": "dotenv -c production -- node server.js"
   },
   "keywords": [
     "Express JS",
@@ -20,6 +19,7 @@
   "author": "chelseaoktaviany",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.5.0",
     "bcryptjs": "^2.4.3",
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.6",
@@ -51,6 +51,7 @@
     "xss-clean": "^0.1.1"
   },
   "devDependencies": {
+    "dotenv-cli": "^7.3.0",
     "eslint": "^8.34.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^8.6.0",
