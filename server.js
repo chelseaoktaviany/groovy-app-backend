@@ -27,6 +27,8 @@ const DB = process.env.DATABASE.replace(
   process.env.DATABASE_PASSWORD
 );
 
+// const DB_LOCAL = process.env.DATABASE_LOCAL;
+
 mongoose.set('strictQuery', false);
 
 mongoose
